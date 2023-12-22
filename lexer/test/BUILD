@@ -3,6 +3,7 @@ cc_test(
     size="small",
     srcs=["lexer_Test.cpp"],
     deps=["@com_google_googletest//:gtest_main",
+          "@com_google_googletest//:gtest",
           "//lexer:lexer",
           ],
 )
