@@ -14,11 +14,13 @@ extern YYSTYPE minic_state_handle;
 size_t comment_depth = 0;
 %}
 
-
+IF_KWD          if
 WHITESPACE      (" "|\f|\r|\t|\v)
+
 
 %%
 
+{IF_KWD}     { minic_state_handle.error_msg = nullptr; return MC_IF_KWD; }
 {WHITESPACE} { }
 .            { minic_state_handle.error_msg = yytext; return MC_ERROR; }
 

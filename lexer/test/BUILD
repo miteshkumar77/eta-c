@@ -2,6 +2,9 @@ cc_library(
     name="lexer_test_utils",
     srcs=[],
     hdrs=["lexer_test_utils.hpp"],
+    deps=["//lexer:minic_utils",
+          "//lexer:minic_lexer",
+          "@boost//:iostreams",]
 )
 cc_test(
     name="lexer_test",

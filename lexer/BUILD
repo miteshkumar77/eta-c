@@ -2,7 +2,7 @@ load("@rules_flex//flex:flex.bzl", "flex_cc_library", "flex")
 
 cc_library(
     name = "minic_lexer_defs",
-    srcs = [],
+    srcs = ["lexer.cpp"],
     hdrs = ["lexer.hpp"],
     visibility = ["//visibility:public"],
 )

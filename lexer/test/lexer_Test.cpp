@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <iostream>
 #include <sstream>
 
 #include <FlexLexer.h>
+#include "lexer_test_utils.hpp"
 
-TEST(LexerTest, IdentifierRegexTest)
+using ::testing::ElementsAre;
+
+TEST(LexerTest, WhiteSpaceTest)
 {
     const std::string input(" a ");
     std::istringstream is(input);
@@ -16,4 +20,14 @@ TEST(LexerTest, IdentifierRegexTest)
         std::cerr << "lexed rc: " << rc << ", for text: "
                   << fl.YYText() << std::endl;
     }
+}
+
+TEST(LexerTest, IfKeywordTest)
+{
+    const std::vector<token> tokens =
+        tokenize(" if ");
+    
+    ASSERT_THAT(tokens, ElementsAre(token{.token_type=MC_IF_KWD,
+        .token_meta={}}));
+    
 }
