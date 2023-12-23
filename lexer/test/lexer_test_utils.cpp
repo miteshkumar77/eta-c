@@ -4,6 +4,7 @@
 #include <FlexLexer.h>
 #include <iostream>
 
+namespace minic::lexer::test {
 std::vector<token> tokenize(const std::string_view input)
 {
     std::vector<token> rval;
@@ -13,9 +14,10 @@ std::vector<token> tokenize(const std::string_view input)
     while ((rc = fl.yylex()) != static_cast<int>(0))
     {
         rval.emplace_back(token{
-            .token_type = static_cast<minic_tokentype>(rc),
-            .token_meta=minic_state_handle,
+            .tag=static_cast<token_tag>(rc),
+            .meta=minic_state_handle,
         });
     }
     return rval;
+}
 }

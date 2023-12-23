@@ -5,6 +5,7 @@ cc_library(
     srcs = ["lexer.cpp"],
     hdrs = ["lexer.hpp"],
     visibility = ["//visibility:public"],
+    deps = ["//base",],
 )
 
 cc_library(
@@ -17,7 +18,7 @@ cc_library(
 flex_cc_library(
     name = "minic_lexer",
     src = "minic_lexer.ll",
-    deps = [":minic_utils", ":minic_lexer_defs",],
+    deps = [":minic_utils", ":minic_lexer_defs"],
     visibility = ["//visibility:public"],
     flex_options = ["--c++", "--noyywrap",],
 )

@@ -1,39 +1,38 @@
 #pragma once
 
-#include <ostream>
-
-using LoggerT = std::ostream;
-
-struct MinicStateHandle
+#include "base/logger.hpp"
+namespace minic::lexer {
+struct StateHandle
 {
     char *error_msg{nullptr};
-    bool operator==(const MinicStateHandle& other) const;
+    bool operator==(const StateHandle& other) const;
 };
 
-LoggerT& operator<<(LoggerT& logger, const MinicStateHandle& state);
+LoggerT& operator<<(LoggerT& logger, const StateHandle& state);
 
-#define YYSTYPE MinicStateHandle
+#define YYSTYPE minic::lexer::StateHandle
 
 YYSTYPE minic_state_handle;
 
-enum minic_tokentype
+enum token_tag
 {
     ERROR = 11,
     WHITESPACE = 12,
     IF_KWD = 13,
 };
 
-#define YYTOKENTYPE minic_tokentype
+#define YYTOKENTYPE minic::lexer::token_tag
 
-#define MC_ERROR minic_tokentype::ERROR 
-#define MC_WHITESPACE minic_tokentype::WHITESPACE
-#define MC_IF_KWD minic_tokentype::IF_KWD
+#define MC_ERROR minic::lexer::token_tag::ERROR 
+#define MC_WHITESPACE minic::lexer::token_tag::WHITESPACE
+#define MC_IF_KWD minic::lexer::token_tag::IF_KWD
 
 struct token {
-    minic_tokentype token_type;
-    MinicStateHandle token_meta;
+    token_tag tag;
+    StateHandle meta;
     bool operator==(const token& other) const;
 };
 
 LoggerT& operator<<(LoggerT& logger, const token& token);
-char const*const token_type_to_string(minic_tokentype tt);
+char const*const token_tag_to_string(token_tag tt);
+}

@@ -8,6 +8,8 @@
 #include "lexer_test_utils.hpp"
 
 using ::testing::ElementsAre;
+using minic::lexer::test::tokenize;
+using minic::lexer::token;
 
 TEST(LexerTest, WhiteSpaceTest)
 {
@@ -28,8 +30,8 @@ TEST(LexerTest, IfKeywordTest)
         const std::vector<token> tokens =
             tokenize(" if ");
 
-        ASSERT_THAT(tokens, ElementsAre(token{.token_type = MC_IF_KWD,
-                                              .token_meta = {}}));
+        ASSERT_THAT(tokens, ElementsAre(token{.tag = MC_IF_KWD,
+                                              .meta = {}}));
     }
     {
         const std::vector<token> tokens =
@@ -37,28 +39,28 @@ TEST(LexerTest, IfKeywordTest)
 
         ASSERT_THAT(tokens, ElementsAre(
                                 token{
-                                    .token_type = MC_IF_KWD,
-                                    .token_meta = {},
+                                    .tag= MC_IF_KWD,
+                                    .meta = {},
                                 },
                                 token{
-                                    .token_type = MC_IF_KWD,
-                                    .token_meta = {},
+                                    .tag= MC_IF_KWD,
+                                    .meta = {},
                                 },
                                 token{
-                                    .token_type = MC_IF_KWD,
-                                    .token_meta = {},
+                                    .tag= MC_IF_KWD,
+                                    .meta = {},
                                 },
                                 token{
-                                    .token_type = MC_IF_KWD,
-                                    .token_meta = {},
+                                    .tag= MC_IF_KWD,
+                                    .meta = {},
                                 },
                                 token{
-                                    .token_type = MC_IF_KWD,
-                                    .token_meta = {},
+                                    .tag = MC_IF_KWD,
+                                    .meta = {},
                                 },
                                 token{
-                                    .token_type = MC_IF_KWD,
-                                    .token_meta = {},
+                                    .tag = MC_IF_KWD,
+                                    .meta = {},
                                 }));
     }
 }

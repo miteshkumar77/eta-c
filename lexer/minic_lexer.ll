@@ -9,7 +9,7 @@
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
 
-extern YYSTYPE minic_state_handle;
+extern YYSTYPE minic::lexer::minic_state_handle;
 
 size_t comment_depth = 0;
 %}
@@ -20,8 +20,8 @@ WHITESPACE      (" "|\f|\r|\t|\v)
 
 %%
 
-{IF_KWD}     { minic_state_handle.error_msg = nullptr; return MC_IF_KWD; }
+{IF_KWD}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_IF_KWD; }
 {WHITESPACE} { }
-.            { minic_state_handle.error_msg = yytext; return MC_ERROR; }
+.            { minic::lexer::minic_state_handle.error_msg = yytext; return MC_ERROR; }
 
 %%
