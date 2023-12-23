@@ -1,9 +1,16 @@
+cc_library(
+    name="lexer_test_utils",
+    srcs=[],
+    hdrs=["lexer_test_utils.hpp"],
+)
 cc_test(
     name="lexer_test",
     size="small",
     srcs=["lexer_Test.cpp"],
     deps=["@com_google_googletest//:gtest_main",
           "@com_google_googletest//:gtest",
-          "//lexer:lexer",
+          "//lexer:minic_utils",
+          ":lexer_test_utils",
+          "//lexer:minic_lexer",
           ],
 )

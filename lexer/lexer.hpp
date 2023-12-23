@@ -1,12 +1,20 @@
 #pragma once
-#include "parsing_utils/ctpg.hpp"
+struct MinicStateHandle
+{
+    char *error_msg{nullptr};
+};
 
-#include "tokens.hpp"
+#define YYSTYPE MinicStateHandle
 
-#include <charconv>
-#include <iostream>
-#include <variant>
+YYSTYPE minic_state_handle;
 
-namespace lexer {
+enum minic_tokentype
+{
+    ERROR = 11,
+    WHITESPACE = 12,
+};
 
-} // namespace lexer
+#define YYTOKENTYPE minic_tokentype
+
+#define MC_ERROR minic_tokentype::ERROR 
+#define MC_WHITESPACE minic_tokentype::WHITESPACE
