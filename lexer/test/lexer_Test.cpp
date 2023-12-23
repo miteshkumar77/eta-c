@@ -24,10 +24,41 @@ TEST(LexerTest, WhiteSpaceTest)
 
 TEST(LexerTest, IfKeywordTest)
 {
-    const std::vector<token> tokens =
-        tokenize(" if ");
-    
-    ASSERT_THAT(tokens, ElementsAre(token{.token_type=MC_IF_KWD,
-        .token_meta={}}));
-    
+    {
+        const std::vector<token> tokens =
+            tokenize(" if ");
+
+        ASSERT_THAT(tokens, ElementsAre(token{.token_type = MC_IF_KWD,
+                                              .token_meta = {}}));
+    }
+    {
+        const std::vector<token> tokens =
+            tokenize(" ifif if  ififif ");
+
+        ASSERT_THAT(tokens, ElementsAre(
+                                token{
+                                    .token_type = MC_IF_KWD,
+                                    .token_meta = {},
+                                },
+                                token{
+                                    .token_type = MC_IF_KWD,
+                                    .token_meta = {},
+                                },
+                                token{
+                                    .token_type = MC_IF_KWD,
+                                    .token_meta = {},
+                                },
+                                token{
+                                    .token_type = MC_IF_KWD,
+                                    .token_meta = {},
+                                },
+                                token{
+                                    .token_type = MC_IF_KWD,
+                                    .token_meta = {},
+                                },
+                                token{
+                                    .token_type = MC_IF_KWD,
+                                    .token_meta = {},
+                                }));
+    }
 }

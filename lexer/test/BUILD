@@ -1,6 +1,6 @@
 cc_library(
     name="lexer_test_utils",
-    srcs=[],
+    srcs=["lexer_test_utils.cpp"],
     hdrs=["lexer_test_utils.hpp"],
     deps=["//lexer:minic_utils",
           "//lexer:minic_lexer",
