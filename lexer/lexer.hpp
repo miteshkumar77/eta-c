@@ -4,7 +4,7 @@
 namespace minic::lexer {
 struct StateHandle
 {
-    char *error_msg{nullptr};
+    char const*error_msg{nullptr};
     bool operator==(const StateHandle& other) const;
 };
 

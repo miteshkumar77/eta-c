@@ -54,6 +54,8 @@ RBRACE             "}"
 SEMI               ";"
 
 LINE_CMT           "//"
+SCOPE_CMT_BEGIN    "/*"
+SCOPE_CMT_END      "*/"
 
 WHITESPACE      (" "|\f|\r|\t|\v)
 
@@ -62,6 +64,7 @@ DIGIT           [0-9]
 INTEGER_LITERAL {DIGIT}+
 
 %x              LINE_CMT_SCOPE
+%x              SCOPE_CMT_SCOPE
 
 %%
 
@@ -110,6 +113,16 @@ INTEGER_LITERAL {DIGIT}+
 }
 <LINE_CMT_SCOPE>\n {
     BEGIN(INITIAL);
+}
+{SCOPE_CMT_BEGIN} {
+    BEGIN(SCOPE_CMT_SCOPE);
+}
+<SCOPE_CMT_SCOPE>{SCOPE_CMT_END} {
+    BEGIN(INITIAL);
+}
+{SCOPE_CMT_END} {
+    minic::lexer::minic_state_handle.error_msg = "unmatched end comment";
+    return MC_ERROR;
 }
 
 <<EOF>>        { return 0; }

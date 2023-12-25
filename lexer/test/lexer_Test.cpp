@@ -175,3 +175,101 @@ TEST(LexerTest, LineCmt)
                                 }));
     }
 }
+
+TEST(LexerTest, MultiLineCmt)
+{
+
+    {
+        const std::vector<token> tokens =
+            tokenize("{( /*)}}\n)*/)}");
+        ASSERT_THAT(tokens, ElementsAre(
+                                token{
+                                    .tag = MC_LBRACE,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_LPAR,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_RPAR,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_RBRACE,
+                                    .meta = {},
+                                }));
+    }
+    {
+        const std::vector<token> tokens =
+            tokenize("/\t/*abc\n}}{{}}\n\t\n*//))}");
+        ASSERT_THAT(tokens, ElementsAre(
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RPAR,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RPAR,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RBRACE,
+                .meta = {},
+            }
+        ));
+    }
+
+    {
+        const std::vector<token> tokens =
+            tokenize("//*abc\n/*}}{{}}\n\t\n*//))}");
+        ASSERT_THAT(tokens, ElementsAre(
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RPAR,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RPAR,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RBRACE,
+                .meta = {},
+            }
+        ));
+    }
+
+    {
+        const std::vector<token> tokens =
+            tokenize("{(/*//\n\n\t+*///)}\n)}");
+        ASSERT_THAT(tokens, ElementsAre(
+            token{
+                .tag = MC_LBRACE,
+                .meta = {},
+            },
+            token{
+                .tag = MC_LPAR,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RPAR,
+                .meta = {},
+            },
+            token{
+                .tag = MC_RBRACE,
+                .meta = {},
+            }
+        ));
+    }
+}
