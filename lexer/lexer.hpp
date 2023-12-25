@@ -2,9 +2,11 @@
 
 #include <variant>
 
+#include "base/logger.hpp"
+
+// test friend
 struct StateHandleTestBackdoor;
 
-#include "base/logger.hpp"
 namespace minic::lexer
 {
 
@@ -53,6 +55,8 @@ namespace minic::lexer
 
         INTEGER_LITERAL = 46,
         STRING_LITERAL = 47,
+        FLOAT_LITERAL = 48,
+        BOOL_LITERAL = 49,
     };
 
 #define YYTOKENTYPE minic::lexer::token_tag
@@ -93,6 +97,8 @@ namespace minic::lexer
 #define MC_SEMI minic::lexer::token_tag::SEMI
 #define MC_INTEGER_LITERAL minic::lexer::token_tag::INTEGER_LITERAL
 #define MC_STRING_LITERAL minic::lexer::token_tag::STRING_LITERAL
+#define MC_FLOAT_LITERAL minic::lexer::token_tag::FLOAT_LITERAL
+#define MC_BOOL_LITERAL minic::lexer::token_tag::BOOL_LITERAL
 
     struct DefaultMeta
     {
@@ -109,13 +115,21 @@ namespace minic::lexer
 
     LoggerT& operator<<(LoggerT& logger, const ErrorMeta& errorMeta);
 
-    struct StringLiteralMeta
+    struct ArbitraryLiteralMeta
     {
         std::string content = {}; // TODO: don't own the copy
-        bool operator==(const StringLiteralMeta &other) const;
+        bool operator==(const ArbitraryLiteralMeta &other) const;
     };
 
-    LoggerT& operator<<(LoggerT& logger, const StringLiteralMeta& stringLiteralMeta);
+    LoggerT& operator<<(LoggerT& logger, const ErrorMeta& errorMeta);
+
+    struct BoolLiteralMeta
+    {
+        bool value = {};
+        bool operator==(const BoolLiteralMeta& other) const;
+    };
+
+    LoggerT& operator<<(LoggerT& logger, const BoolLiteralMeta& boolLiteralMeta);
 
     template <token_tag tt>
     struct MetaExtractor
@@ -126,7 +140,25 @@ namespace minic::lexer
     template <>
     struct MetaExtractor<STRING_LITERAL>
     {
-        using meta_t = StringLiteralMeta;
+        using meta_t = ArbitraryLiteralMeta;
+    };
+
+    template <>
+    struct MetaExtractor<INTEGER_LITERAL>
+    {
+        using meta_t = ArbitraryLiteralMeta;
+    };
+
+    template <>
+    struct MetaExtractor<FLOAT_LITERAL>
+    {
+        using meta_t = ArbitraryLiteralMeta;
+    };
+
+    template <>
+    struct MetaExtractor<BOOL_LITERAL>
+    {
+        using meta_t = BoolLiteralMeta;
     };
 
     template <>
@@ -138,7 +170,7 @@ namespace minic::lexer
     template <token_tag tt>
     using MetaT = typename MetaExtractor<tt>::meta_t;
 
-    using MetaStorageT = std::variant<StringLiteralMeta, DefaultMeta, ErrorMeta>;
+    using MetaStorageT = std::variant<ArbitraryLiteralMeta, BoolLiteralMeta, DefaultMeta, ErrorMeta>;
 
     class StateHandle
     {

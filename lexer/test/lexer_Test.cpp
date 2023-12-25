@@ -10,7 +10,8 @@
 using minic::lexer::token;
 using minic::lexer::test::tokenize;
 using minic::lexer::StateHandle;
-using minic::lexer::StringLiteralMeta;
+using minic::lexer::ArbitraryLiteralMeta;
+using minic::lexer::BoolLiteralMeta;
 using minic::lexer::ErrorMeta;
 
 using ::testing::ElementsAre;
@@ -82,48 +83,6 @@ TEST(LexerTest, Parens)
                                 },
                                 token{
                                     .tag = MC_RPAR,
-                                    .meta = {},
-                                }));
-    }
-}
-
-TEST(LexerTest, IntegerLiteral)
-{
-    {
-        const std::vector<token> tokens =
-            tokenize("( 123 1 0 1\n1)223");
-
-        ASSERT_THAT(tokens, ElementsAre(
-                                token{
-                                    .tag = MC_LPAR,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_INTEGER_LITERAL,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_INTEGER_LITERAL,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_INTEGER_LITERAL,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_INTEGER_LITERAL,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_INTEGER_LITERAL,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_RPAR,
-                                    .meta = {},
-                                },
-                                token{
-                                    .tag = MC_INTEGER_LITERAL,
                                     .meta = {},
                                 }));
     }
@@ -287,6 +246,114 @@ struct StateHandleTestBackdoor
     }
 };
 
+TEST(LexerTest, IntegerLiteral)
+{
+    {
+        const std::vector<token> tokens =
+            tokenize("( 123 1 0 1\n1)223");
+
+        ASSERT_THAT(tokens, ElementsAre(
+                                token{
+                                    .tag = MC_LPAR,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_INTEGER_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="123"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_INTEGER_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="1"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_INTEGER_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="0"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_INTEGER_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="1"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_INTEGER_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="1"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_RPAR,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_INTEGER_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="223"}
+                                    )},
+                                }));
+    }
+}
+
+TEST(LexerTest, FloatLiteral)
+{
+    {
+        const std::vector<token> tokens =
+            tokenize("( 123.1234 1.0 0.1 1.\n1.13)223.90");
+
+        ASSERT_THAT(tokens, ElementsAre(
+                                token{
+                                    .tag = MC_LPAR,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_FLOAT_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="123.1234"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_FLOAT_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="1.0"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_FLOAT_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="0.1"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_FLOAT_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="1."}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_FLOAT_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="1.13"}
+                                    )},
+                                },
+                                token{
+                                    .tag = MC_RPAR,
+                                    .meta = {},
+                                },
+                                token{
+                                    .tag = MC_FLOAT_LITERAL,
+                                    .meta = {StateHandleTestBackdoor::create(
+                                        ArbitraryLiteralMeta{.content="223.90"}
+                                    )},
+                                }));
+    }
+}
+
 TEST(LexerTest, StringLiteral)
 {
     {
@@ -315,7 +382,7 @@ TEST(LexerTest, StringLiteral)
             },
             token{
                 .tag = MC_STRING_LITERAL,
-                .meta = StateHandleTestBackdoor::create(StringLiteralMeta{
+                .meta = StateHandleTestBackdoor::create(ArbitraryLiteralMeta{
                     .content=std::string("ab//a/*b*/1")
                 }),
             },
@@ -351,13 +418,40 @@ TEST(LexerTest, StringLiteral)
             },
             token{
                 .tag = MC_STRING_LITERAL,
-                .meta = StateHandleTestBackdoor::create(StringLiteralMeta{
+                .meta = StateHandleTestBackdoor::create(ArbitraryLiteralMeta{
                     .content=std::string("ab//a/*b*/1\f\t\n\bq\"")
                 }),
             },
             token{
                 .tag = MC_RBRACE,
                 .meta = {},
+            }
+        ));
+    }
+}
+
+
+TEST(LexerTest, BoolLiteral)
+{
+    {
+        const std::vector<token> tokens =
+            tokenize("{true false}");
+        ASSERT_THAT(tokens, ElementsAre(
+            token{
+                .tag = MC_LBRACE,
+                .meta = {}
+            },
+            token{
+                .tag = MC_BOOL_LITERAL,
+                .meta = StateHandleTestBackdoor::create(BoolLiteralMeta{.value=true}),
+            },
+            token{
+                .tag = MC_BOOL_LITERAL,
+                .meta = StateHandleTestBackdoor::create(BoolLiteralMeta{.value=false}),
+            },
+            token{
+                .tag = MC_RBRACE,
+                .meta = {}
             }
         ));
     }

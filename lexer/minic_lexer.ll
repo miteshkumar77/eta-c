@@ -62,6 +62,9 @@ WHITESPACE      (" "|\f|\r|\t|\v)
 DIGIT           [0-9]
 
 INTEGER_LITERAL {DIGIT}+
+FLOAT_LITERAL   {DIGIT}+\.{DIGIT}*
+TRUE_BOOL_LITERAL    "true"
+FALSE_BOOL_LITERAL   "false"
 
 STR_TERM          "\""
 
@@ -109,7 +112,37 @@ STR_TERM          "\""
 {OR_BIN}       { return MC_OR_BIN; }
 {SEMI}         { return MC_SEMI; }
 
-{INTEGER_LITERAL}  { return MC_INTEGER_LITERAL; }
+{INTEGER_LITERAL}  { 
+    constexpr minic::lexer::token_tag rt = MC_INTEGER_LITERAL;
+    minic::lexer::minic_state_handle.get_writer<rt>(
+        minic::lexer::ArbitraryLiteralMeta{.content=yytext}
+    );
+    return rt;
+}
+
+{FLOAT_LITERAL}  { 
+    constexpr minic::lexer::token_tag rt = MC_FLOAT_LITERAL;
+    minic::lexer::minic_state_handle.get_writer<rt>(
+        minic::lexer::ArbitraryLiteralMeta{.content=yytext}
+    );
+    return rt;
+}
+
+{TRUE_BOOL_LITERAL}  {
+    constexpr minic::lexer::token_tag rt = MC_BOOL_LITERAL;
+    minic::lexer::minic_state_handle.get_writer<rt>(
+        minic::lexer::BoolLiteralMeta{.value=true}
+    );
+    return rt;
+}
+
+{FALSE_BOOL_LITERAL}  {
+    constexpr minic::lexer::token_tag rt = MC_BOOL_LITERAL;
+    minic::lexer::minic_state_handle.get_writer<rt>(
+        minic::lexer::BoolLiteralMeta{.value=false}
+    );
+    return rt;
+}
 
 {LINE_CMT}     {
     BEGIN(LINE_CMT_SCOPE);
@@ -139,7 +172,7 @@ STR_TERM          "\""
     BEGIN(INITIAL);
     constexpr minic::lexer::token_tag rt = MC_STRING_LITERAL;
     minic::lexer::minic_state_handle.get_writer<rt>(
-        minic::lexer::StringLiteralMeta{.content=std::string(string_buf, string_buf_ptr - string_buf)}
+        minic::lexer::ArbitraryLiteralMeta{.content=std::string(string_buf, string_buf_ptr - string_buf)}
     );
     string_buf_ptr = nullptr;
     return rt;

@@ -24,14 +24,24 @@ namespace minic::lexer
         return logger << "ErrorMeta{ .error_msg=" << errorMeta.error_msg << " }";
     }
 
-    bool StringLiteralMeta::operator==(const StringLiteralMeta& other) const
+    bool ArbitraryLiteralMeta::operator==(const ArbitraryLiteralMeta& other) const
     {
         return this->content == other.content;
     }
 
-    LoggerT& operator<<(LoggerT& logger, const StringLiteralMeta& stringLiteralMeta)
+    LoggerT& operator<<(LoggerT& logger, const ArbitraryLiteralMeta& ArbitraryLiteralMeta)
     {
-        return logger << "StringLiteralMeta{ .content=" << stringLiteralMeta.content << " }";
+        return logger << "ArbitraryLiteralMeta{ .content=" << ArbitraryLiteralMeta.content << " }";
+    }
+
+    bool BoolLiteralMeta::operator==(const BoolLiteralMeta& other) const
+    {
+        return this->value == other.value;
+    }
+
+    LoggerT& operator<<(LoggerT& logger, const BoolLiteralMeta& boolLiteralMeta)
+    {
+        return logger << "BoolLiteralMeta{ .value=" << std::boolalpha << boolLiteralMeta.value << " }";
     }
 
     bool StateHandle::operator==(const StateHandle &other) const
@@ -136,6 +146,10 @@ namespace minic::lexer
             return "MC_INTEGER_LITERAL";
         case MC_STRING_LITERAL:
             return "MC_STRING_LITERAL";
+        case MC_FLOAT_LITERAL:
+            return "MC_FLOAT_LITERAL";
+        case MC_BOOL_LITERAL:
+            return "MC_BOOL_LITERAL";
             // no-default
         }
         return "~~UNKNOWN~~";
