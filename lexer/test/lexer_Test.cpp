@@ -64,3 +64,22 @@ TEST(LexerTest, IfKeywordTest)
                                 }));
     }
 }
+
+TEST(LexerTest, Parens)
+{
+    {
+    const std::vector<token> tokens =
+        tokenize("( \n \t )");
+    
+    ASSERT_THAT(tokens, ElementsAre(
+        token{
+            .tag = MC_LPAR,
+            .meta = {},
+        },
+        token{
+            .tag = MC_RPAR,
+            .meta = {},
+        }
+    ));
+    }
+}
