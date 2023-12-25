@@ -43,12 +43,6 @@ namespace minic::lexer
             return "MC_WHITESPACE";
         case MC_IF_KWD:
             return "MC_IF_KWD";
-        case MC_OR_BIN:
-            return "MC_OR";
-        case MC_LPAR:
-            return "MC_LPAR";
-        case MC_RPAR:
-            return "MC_RPAR";
         case MC_ELSE_KWD:
             return "MC_ELSE_KWD";
         case MC_WHILE_KWD:
@@ -99,6 +93,16 @@ namespace minic::lexer
             return "MC_NOT_UN";
         case MC_AND_BIN:
             return "MC_AND_BIN";
+        case MC_OR_BIN:
+            return "MC_OR";
+        case MC_LPAR:
+            return "MC_LPAR";
+        case MC_RPAR:
+            return "MC_RPAR";
+        case MC_LBRACE:
+            return "MC_LBRACE";
+        case MC_RBRACE:
+            return "MC_RBRACE";
         case MC_SEMI:
             return "MC_SEMI";
         case MC_INTEGER_LITERAL:

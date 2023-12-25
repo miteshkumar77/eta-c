@@ -49,13 +49,19 @@ AND_BIN            "&&"
 OR_BIN             "||"
 LPAR               "("
 RPAR               ")"
+LBRACE             "{"
+RBRACE             "}"
 SEMI               ";"
+
+LINE_CMT           "//"
 
 WHITESPACE      (" "|\f|\r|\t|\v)
 
-DIGIT [0-9]
+DIGIT           [0-9]
 
-INTEGER_LITERAL DIGIT+
+INTEGER_LITERAL {DIGIT}+
+
+%x              LINE_CMT_SCOPE
 
 %%
 
@@ -92,10 +98,21 @@ INTEGER_LITERAL DIGIT+
 {AND_BIN}      { return MC_AND_BIN; }
 {LPAR}         { return MC_LPAR; }
 {RPAR}         { return MC_RPAR; }
+{LBRACE}       { return MC_LBRACE; }
+{RBRACE}       { return MC_RBRACE; }
 {OR_BIN}       { return MC_OR_BIN; }
 {SEMI}         { return MC_SEMI; }
 
 {INTEGER_LITERAL}  { return MC_INTEGER_LITERAL; }
+
+{LINE_CMT}     {
+    BEGIN(LINE_CMT_SCOPE);
+}
+<LINE_CMT_SCOPE>\n {
+    BEGIN(INITIAL);
+}
+
+<<EOF>>        { return 0; }
 
 .              { minic::lexer::minic_state_handle.error_msg = yytext; return MC_ERROR; }
 

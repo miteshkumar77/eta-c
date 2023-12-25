@@ -22,3 +22,9 @@ flex_cc_library(
     visibility = ["//visibility:public"],
     flex_options = ["--c++", "--noyywrap",],
 )
+
+cc_binary(
+    name = "minic_lexer_exe",
+    srcs = ["main.cpp"],
+    deps = [":minic_lexer_defs", ":minic_lexer"]
+)

@@ -53,9 +53,11 @@ enum token_tag
 
     LPAR   = 40,
     RPAR   = 41,
-    SEMI   = 42,
+    LBRACE = 43,
+    RBRACE = 44,
+    SEMI   = 45,
 
-    INTEGER_LITERAL = 43,
+    INTEGER_LITERAL = 46,
 };
 
 #define YYTOKENTYPE minic::lexer::token_tag
@@ -91,6 +93,8 @@ enum token_tag
 #define MC_OR_BIN minic::lexer::token_tag::OR_BIN
 #define MC_LPAR minic::lexer::token_tag::LPAR
 #define MC_RPAR minic::lexer::token_tag::RPAR
+#define MC_LBRACE minic::lexer::token_tag::LBRACE
+#define MC_RBRACE minic::lexer::token_tag::RBRACE
 #define MC_SEMI minic::lexer::token_tag::SEMI
 #define MC_INTEGER_LITERAL minic::lexer::token_tag::INTEGER_LITERAL
 
