@@ -131,7 +131,7 @@ STR_TERM          "\""
     string_buf_ptr = string_buf;
     BEGIN(STRING_SCOPE);
 }
-<STRING_SCOPE>\n         {
+<STRING_SCOPE>"\n"       {
     minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg="multi-line string not allowed"});
     return MC_ERROR;
 }
@@ -142,7 +142,33 @@ STR_TERM          "\""
         minic::lexer::StringLiteralMeta{.content=std::string(string_buf, string_buf_ptr - string_buf)}
     );
     string_buf_ptr = nullptr;
-    return MC_STRING_LITERAL;
+    return rt;
+}
+<STRING_SCOPE>"\\". {
+    if ((string_buf_ptr - string_buf + 2) > MAX_STR_CONST) {
+        minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg="string constant too long"});
+        BEGIN(INITIAL);
+        return MC_ERROR;
+    }
+
+    const char& specialChar = yytext[1];
+    switch (specialChar)
+    {
+    case 'b':
+        (*string_buf_ptr++) = '\b';
+        break;
+    case 't':
+        (*string_buf_ptr++) = '\t';
+        break;
+    case 'n':
+        (*string_buf_ptr++) = '\n';
+        break;
+    case 'f':
+        (*string_buf_ptr++) = '\f';
+        break;
+    default:
+        (*string_buf_ptr++) = specialChar;
+    }
 }
 <STRING_SCOPE>.         {
     if ((string_buf_ptr - string_buf + 2) > MAX_STR_CONST) {
@@ -158,6 +184,7 @@ STR_TERM          "\""
 
 .              { 
     minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg=yytext});
-     return MC_ERROR; }
+    return MC_ERROR; 
+}
 
 %%

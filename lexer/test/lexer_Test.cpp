@@ -325,4 +325,40 @@ TEST(LexerTest, StringLiteral)
             }
         ));
     }
+    {
+        const std::vector<token> tokens =
+            tokenize("/+-/%\"ab//a/*b*/1\\f\\t\\n\\bq\\\"\"//\"aba//b1\"\n}");
+        ASSERT_THAT(tokens, ElementsAre(
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_PLUS_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_MINUS_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_MOD_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_STRING_LITERAL,
+                .meta = StateHandleTestBackdoor::create(StringLiteralMeta{
+                    .content=std::string("ab//a/*b*/1\f\t\n\bq\"")
+                }),
+            },
+            token{
+                .tag = MC_RBRACE,
+                .meta = {},
+            }
+        ));
+    }
 }
