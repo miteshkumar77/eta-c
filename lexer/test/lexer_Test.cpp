@@ -9,6 +9,10 @@
 
 using minic::lexer::token;
 using minic::lexer::test::tokenize;
+using minic::lexer::StateHandle;
+using minic::lexer::StringLiteralMeta;
+using minic::lexer::ErrorMeta;
+
 using ::testing::ElementsAre;
 
 TEST(LexerTest, WhiteSpaceTest)
@@ -265,6 +269,55 @@ TEST(LexerTest, MultiLineCmt)
             token{
                 .tag = MC_RPAR,
                 .meta = {},
+            },
+            token{
+                .tag = MC_RBRACE,
+                .meta = {},
+            }
+        ));
+    }
+}
+
+struct StateHandleTestBackdoor
+{
+    template <typename MetaT>
+    static StateHandle create(MetaT&& meta)
+    {
+        return StateHandle::create(std::forward<MetaT>(meta));
+    }
+};
+
+TEST(LexerTest, StringLiteral)
+{
+    {
+        const std::vector<token> tokens =
+            tokenize("/+-/%\"ab//a/*b*/1\"//\"aba//b1\"\n}");
+        ASSERT_THAT(tokens, ElementsAre(
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_PLUS_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_MINUS_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_DIV_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_MOD_BIN,
+                .meta = {},
+            },
+            token{
+                .tag = MC_STRING_LITERAL,
+                .meta = StateHandleTestBackdoor::create(StringLiteralMeta{
+                    .content=std::string("ab//a/*b*/1")
+                }),
             },
             token{
                 .tag = MC_RBRACE,

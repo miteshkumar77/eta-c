@@ -4,16 +4,39 @@
 
 namespace minic::lexer
 {
-    namespace
+    bool DefaultMeta::operator==(const DefaultMeta&) const
     {
-        char const *const none_if_null(char const *const maybe_null);
+        return true;
+    }
+
+    LoggerT& operator<<(LoggerT& logger, const DefaultMeta& defaultMeta)
+    {
+        return logger << "DefaultMeta{}";
+    }
+
+    bool ErrorMeta::operator==(const ErrorMeta& other) const
+    {
+        return this->error_msg == other.error_msg;
+    }
+
+    LoggerT& operator<<(LoggerT& logger, const ErrorMeta& errorMeta)
+    {
+        return logger << "ErrorMeta{ .error_msg=" << errorMeta.error_msg << " }";
+    }
+
+    bool StringLiteralMeta::operator==(const StringLiteralMeta& other) const
+    {
+        return this->content == other.content;
+    }
+
+    LoggerT& operator<<(LoggerT& logger, const StringLiteralMeta& stringLiteralMeta)
+    {
+        return logger << "StringLiteralMeta{ .content=" << stringLiteralMeta.content << " }";
     }
 
     bool StateHandle::operator==(const StateHandle &other) const
     {
-        return (this->error_msg == nullptr && other.error_msg == nullptr) ||
-               ((this->error_msg != nullptr && other.error_msg != nullptr) &&
-                std::string(this->error_msg) == std::string(other.error_msg));
+        return this->val == other.val;
     }
 
     bool token::operator==(const token &other) const
@@ -24,7 +47,11 @@ namespace minic::lexer
 
     LoggerT &operator<<(LoggerT &logger, const StateHandle &state)
     {
-        return logger << "StateHandle{ .error_msg=" << none_if_null(state.error_msg) << " }";
+        logger << "StateHandle{ .val=";
+        std::visit([&logger](auto&& arg) {
+            logger << arg;
+        }, state.val);
+        return logger << " }";
     }
 
     LoggerT &operator<<(LoggerT &logger, const token &t)
@@ -107,6 +134,8 @@ namespace minic::lexer
             return "MC_SEMI";
         case MC_INTEGER_LITERAL:
             return "MC_INTEGER_LITERAL";
+        case MC_STRING_LITERAL:
+            return "MC_STRING_LITERAL";
             // no-default
         }
         return "~~UNKNOWN~~";
@@ -115,20 +144,5 @@ namespace minic::lexer
     void rule_setup()
     {
         minic_state_handle = StateHandle{};
-    }
-
-    namespace
-    {
-        char const *const none_if_null(char const *const maybe_null)
-        {
-            if (maybe_null)
-            {
-                return maybe_null;
-            }
-            else
-            {
-                return "[none]";
-            }
-        }
     }
 }

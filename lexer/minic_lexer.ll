@@ -10,7 +10,7 @@
     minic::lexer::rule_setup();
 
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
-char *string_buf_ptr;
+char *string_buf_ptr = nullptr;
 
 extern YYSTYPE minic::lexer::minic_state_handle;
 
@@ -63,8 +63,11 @@ DIGIT           [0-9]
 
 INTEGER_LITERAL {DIGIT}+
 
+STR_TERM          "\""
+
 %x              LINE_CMT_SCOPE
 %x              SCOPE_CMT_SCOPE
+%x              STRING_SCOPE
 
 %%
 
@@ -121,12 +124,40 @@ INTEGER_LITERAL {DIGIT}+
     BEGIN(INITIAL);
 }
 {SCOPE_CMT_END} {
-    minic::lexer::minic_state_handle.error_msg = "unmatched end comment";
+    minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg="unmatched end comment"});
     return MC_ERROR;
 }
+{STR_TERM}               {
+    string_buf_ptr = string_buf;
+    BEGIN(STRING_SCOPE);
+}
+<STRING_SCOPE>\n         {
+    minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg="multi-line string not allowed"});
+    return MC_ERROR;
+}
+<STRING_SCOPE>{STR_TERM} {
+    BEGIN(INITIAL);
+    constexpr minic::lexer::token_tag rt = MC_STRING_LITERAL;
+    minic::lexer::minic_state_handle.get_writer<rt>(
+        minic::lexer::StringLiteralMeta{.content=std::string(string_buf, string_buf_ptr - string_buf)}
+    );
+    string_buf_ptr = nullptr;
+    return MC_STRING_LITERAL;
+}
+<STRING_SCOPE>.         {
+    if ((string_buf_ptr - string_buf + 2) > MAX_STR_CONST) {
+        minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg="string constant too long"});
+        BEGIN(INITIAL);
+        return MC_ERROR;
+    }
+    *(string_buf_ptr++) = yytext[0];
+}
+
 
 <<EOF>>        { return 0; }
 
-.              { minic::lexer::minic_state_handle.error_msg = yytext; return MC_ERROR; }
+.              { 
+    minic::lexer::minic_state_handle.get_writer<MC_ERROR>(minic::lexer::ErrorMeta{.error_msg=yytext});
+     return MC_ERROR; }
 
 %%
