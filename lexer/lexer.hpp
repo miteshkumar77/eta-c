@@ -14,6 +14,8 @@ LoggerT& operator<<(LoggerT& logger, const StateHandle& state);
 
 inline YYSTYPE minic_state_handle {};
 
+void rule_setup();
+
 enum token_tag
 {
     ERROR = 11,
@@ -52,6 +54,8 @@ enum token_tag
     LPAR   = 40,
     RPAR   = 41,
     SEMI   = 42,
+
+    INTEGER_LITERAL = 43,
 };
 
 #define YYTOKENTYPE minic::lexer::token_tag
@@ -88,6 +92,7 @@ enum token_tag
 #define MC_LPAR minic::lexer::token_tag::LPAR
 #define MC_RPAR minic::lexer::token_tag::RPAR
 #define MC_SEMI minic::lexer::token_tag::SEMI
+#define MC_INTEGER_LITERAL minic::lexer::token_tag::INTEGER_LITERAL
 
 struct token {
     token_tag tag;

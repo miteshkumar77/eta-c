@@ -6,6 +6,9 @@
 #define MAX_STR_CONST 1025
 #define YY_NO_UNPUT   /* keep g++ happy */
 
+#define YY_USER_ACTION \
+    minic::lexer::rule_setup();
+
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
 
@@ -50,46 +53,49 @@ SEMI               ";"
 
 WHITESPACE      (" "|\f|\r|\t|\v)
 
-BLOCK_COMMENT : 
+DIGIT [0-9]
 
+INTEGER_LITERAL DIGIT+
 
 %%
 
 {WHITESPACE}   { }
-{IF_KWD}       { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_IF_KWD; }
-{ELSE_KWD}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_ELSE_KWD; }
-{WHILE_KWD}    { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_WHILE_KWD; }
-{BREAK_KWD}    { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_BREAK_KWD; }
-{CONTINUE_KWD} { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_CONTINUE_KWD; }
+{IF_KWD}       { return MC_IF_KWD; }
+{ELSE_KWD}     { return MC_ELSE_KWD; }
+{WHILE_KWD}    { return MC_WHILE_KWD; }
+{BREAK_KWD}    { return MC_BREAK_KWD; }
+{CONTINUE_KWD} { return MC_CONTINUE_KWD; }
 
-{EXIT_KWD}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_EXIT_KWD; }
-{PRINT_KWD}    { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_PRINT_KWD; }
-{PRINTLN_KWD}  { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_PRINTLN_KWD; }
+{EXIT_KWD}     { return MC_EXIT_KWD; }
+{PRINT_KWD}    { return MC_PRINT_KWD; }
+{PRINTLN_KWD}  { return MC_PRINTLN_KWD; }
 
-{INT_TYPE}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_INT_TYPE; }
-{DOUBLE_TYPE}  { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_DOUBLE_TYPE; }
-{STRING_TYPE}  { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_STRING_TYPE; }
-{BOOL_TYPE}    { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_BOOL_TYPE; }
+{INT_TYPE}     { return MC_INT_TYPE; }
+{DOUBLE_TYPE}  { return MC_DOUBLE_TYPE; }
+{STRING_TYPE}  { return MC_STRING_TYPE; }
+{BOOL_TYPE}    { return MC_BOOL_TYPE; }
 
 
-{MUL_BIN}      { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_MUL_BIN; }
-{DIV_BIN}      { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_DIV_BIN; }   
-{PLUS_BIN}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_PLUS_BIN; } 
-{MINUS_BIN}    { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_MINUS_BIN; }  
-{MOD_BIN}      { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_MOD_BIN; }
-{LT_BIN}       { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_LT_BIN; }
-{GT_BIN}       { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_GT_BIN; }
-{LTEQ_BIN}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_LTEQ_BIN; } 
-{GTEQ_BIN}     { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_GTEQ_BIN; } 
-{ASSIGN_BIN}   { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_ASSIGN_BIN; }   
-{EQ_BIN}       { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_EQ_BIN; }
-{NOTEQ_BIN}    { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_NOTEQ_BIN; }  
-{NOT_UN}       { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_NOT_UN; }
-{AND_BIN}      { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_AND_BIN; }
-{LPAR}         { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_LPAR; }
-{RPAR}         { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_RPAR; }
-{OR_BIN}       { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_OR_BIN; }
-{SEMI}         { minic::lexer::minic_state_handle.error_msg = nullptr; return MC_SEMI; }
+{MUL_BIN}      { return MC_MUL_BIN; }
+{DIV_BIN}      { return MC_DIV_BIN; }   
+{PLUS_BIN}     { return MC_PLUS_BIN; } 
+{MINUS_BIN}    { return MC_MINUS_BIN; }  
+{MOD_BIN}      { return MC_MOD_BIN; }
+{LT_BIN}       { return MC_LT_BIN; }
+{GT_BIN}       { return MC_GT_BIN; }
+{LTEQ_BIN}     { return MC_LTEQ_BIN; } 
+{GTEQ_BIN}     { return MC_GTEQ_BIN; } 
+{ASSIGN_BIN}   { return MC_ASSIGN_BIN; }   
+{EQ_BIN}       { return MC_EQ_BIN; }
+{NOTEQ_BIN}    { return MC_NOTEQ_BIN; }  
+{NOT_UN}       { return MC_NOT_UN; }
+{AND_BIN}      { return MC_AND_BIN; }
+{LPAR}         { return MC_LPAR; }
+{RPAR}         { return MC_RPAR; }
+{OR_BIN}       { return MC_OR_BIN; }
+{SEMI}         { return MC_SEMI; }
+
+{INTEGER_LITERAL}  { return MC_INTEGER_LITERAL; }
 
 .              { minic::lexer::minic_state_handle.error_msg = yytext; return MC_ERROR; }
 

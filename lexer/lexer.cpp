@@ -101,9 +101,16 @@ namespace minic::lexer
             return "MC_AND_BIN";
         case MC_SEMI:
             return "MC_SEMI";
+        case MC_INTEGER_LITERAL:
+            return "MC_INTEGER_LITERAL";
             // no-default
         }
         return "~~UNKNOWN~~";
+    }
+
+    void rule_setup()
+    {
+        minic_state_handle = StateHandle{};
     }
 
     namespace
