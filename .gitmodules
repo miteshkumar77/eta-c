@@ -1,3 +1,0 @@
-[submodule "parsing_utils/ctpg"]
-	path = parsing_utils/ctpg
-	url = https://github.com/peter-winter/ctpg.git
