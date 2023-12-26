@@ -10,6 +10,7 @@
 using minic::lexer::ArbitraryLiteralMeta;
 using minic::lexer::BoolLiteralMeta;
 using minic::lexer::ErrorMeta;
+using minic::lexer::IdentifierMeta;
 using minic::lexer::StateHandle;
 using minic::lexer::token;
 using minic::lexer::test::tokenize;
@@ -40,7 +41,7 @@ TEST(LexerTest, IfKeywordTest)
   }
   {
     const std::vector<token> tokens =
-        tokenize(" ifif if  ififif ");
+        tokenize(" if\nif if  if\nif\nif ");
 
     ASSERT_THAT(tokens, ElementsAre(
                             token{
@@ -431,5 +432,74 @@ TEST(LexerTest, BoolLiteral)
                             token{
                                 .tag = MC_RBRACE,
                                 .meta = {}}));
+  }
+}
+
+TEST(LexerTest, IdentifierTest)
+{
+  {
+    const std::vector<token> tokens =
+        tokenize("{truefalse; true; false; ifelse if() else()}");
+    ASSERT_THAT(tokens, ElementsAre(
+                            token{
+                                .tag = MC_LBRACE,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_IDENTIFIER,
+                                .meta = StateHandleTestBackdoor::create(IdentifierMeta{.name = std::string("truefalse")}),
+                            },
+                            token{
+                                .tag = MC_SEMI,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_BOOL_LITERAL,
+                                .meta = {StateHandleTestBackdoor::create(BoolLiteralMeta{.value = true})},
+                            },
+                            token{
+                                .tag = MC_SEMI,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_BOOL_LITERAL,
+                                .meta = {StateHandleTestBackdoor::create(BoolLiteralMeta{.value = false})},
+                            },
+                            token{
+                                .tag = MC_SEMI,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_IDENTIFIER,
+                                .meta = StateHandleTestBackdoor::create(IdentifierMeta{.name = std::string("ifelse")}),
+                            },
+                            token{
+                                .tag = MC_IF_KWD,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_LPAR,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_RPAR,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_ELSE_KWD,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_LPAR,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_RPAR,
+                                .meta = {},
+                            },
+                            token{
+                                .tag = MC_RBRACE,
+                                .meta = {},
+                            }));
   }
 }

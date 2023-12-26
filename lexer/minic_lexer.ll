@@ -68,6 +68,8 @@ FALSE_BOOL_LITERAL   "false"
 
 STR_TERM          "\""
 
+IDENTIFIER      ("_"|[a-z]|[A-Z])("_"|[a-z]|[A-Z]|{DIGIT})*
+
 %x              LINE_CMT_SCOPE
 %x              SCOPE_CMT_SCOPE
 %x              STRING_SCOPE
@@ -210,6 +212,12 @@ STR_TERM          "\""
         return MC_ERROR;
     }
     *(string_buf_ptr++) = yytext[0];
+}
+
+{IDENTIFIER}            {
+    constexpr minic::lexer::token_tag rt = MC_IDENTIFIER;
+    minic::lexer::minic_state_handle.get_writer<rt>(minic::lexer::IdentifierMeta{.name=yytext});
+    return rt;
 }
 
 

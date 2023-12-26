@@ -9,7 +9,6 @@ struct StateHandleTestBackdoor;
 
 namespace minic::lexer
 {
-
     void rule_setup();
 
     enum token_tag
@@ -57,6 +56,8 @@ namespace minic::lexer
         STRING_LITERAL = 47,
         FLOAT_LITERAL = 48,
         BOOL_LITERAL = 49,
+
+        IDENTIFIER = 50,
     };
 
 #define YYTOKENTYPE minic::lexer::token_tag
@@ -99,13 +100,14 @@ namespace minic::lexer
 #define MC_STRING_LITERAL minic::lexer::token_tag::STRING_LITERAL
 #define MC_FLOAT_LITERAL minic::lexer::token_tag::FLOAT_LITERAL
 #define MC_BOOL_LITERAL minic::lexer::token_tag::BOOL_LITERAL
+#define MC_IDENTIFIER minic::lexer::token_tag::IDENTIFIER
 
     struct DefaultMeta
     {
         bool operator==(const DefaultMeta &other) const;
     };
 
-    LoggerT& operator<<(LoggerT& logger, const DefaultMeta& defaultMeta);
+    LoggerT &operator<<(LoggerT &logger, const DefaultMeta &defaultMeta);
 
     struct ErrorMeta
     {
@@ -113,7 +115,7 @@ namespace minic::lexer
         bool operator==(const ErrorMeta &other) const;
     };
 
-    LoggerT& operator<<(LoggerT& logger, const ErrorMeta& errorMeta);
+    LoggerT &operator<<(LoggerT &logger, const ErrorMeta &errorMeta);
 
     struct ArbitraryLiteralMeta
     {
@@ -121,15 +123,23 @@ namespace minic::lexer
         bool operator==(const ArbitraryLiteralMeta &other) const;
     };
 
-    LoggerT& operator<<(LoggerT& logger, const ErrorMeta& errorMeta);
+    LoggerT &operator<<(LoggerT &logger, const ErrorMeta &errorMeta);
 
     struct BoolLiteralMeta
     {
         bool value = {};
-        bool operator==(const BoolLiteralMeta& other) const;
+        bool operator==(const BoolLiteralMeta &other) const;
     };
 
-    LoggerT& operator<<(LoggerT& logger, const BoolLiteralMeta& boolLiteralMeta);
+    LoggerT &operator<<(LoggerT &logger, const BoolLiteralMeta &boolLiteralMeta);
+
+    struct IdentifierMeta
+    {
+        std::string name = {}; // TODO: don't own the copy
+        bool operator==(const IdentifierMeta &other) const;
+    };
+
+    LoggerT &operator<<(LoggerT &logger, const IdentifierMeta &errorMeta);
 
     template <token_tag tt>
     struct MetaExtractor
@@ -167,10 +177,16 @@ namespace minic::lexer
         using meta_t = ErrorMeta;
     };
 
+    template <>
+    struct MetaExtractor<MC_IDENTIFIER>
+    {
+        using meta_t = IdentifierMeta;
+    };
+
     template <token_tag tt>
     using MetaT = typename MetaExtractor<tt>::meta_t;
 
-    using MetaStorageT = std::variant<ArbitraryLiteralMeta, BoolLiteralMeta, DefaultMeta, ErrorMeta>;
+    using MetaStorageT = std::variant<IdentifierMeta, ArbitraryLiteralMeta, BoolLiteralMeta, DefaultMeta, ErrorMeta>;
 
     class StateHandle
     {
@@ -179,6 +195,7 @@ namespace minic::lexer
         MetaT<tt> &get_writer(Args &&...args);
 
         bool operator==(const StateHandle &other) const;
+
     private:
         friend LoggerT &operator<<(LoggerT &logger, const StateHandle &state);
 
@@ -186,7 +203,7 @@ namespace minic::lexer
 
         // testing helper
         template <typename MetaT>
-        static StateHandle create(MetaT&& meta);
+        static StateHandle create(MetaT &&meta);
 
         MetaStorageT val = DefaultMeta{};
     };
@@ -198,13 +215,12 @@ namespace minic::lexer
     }
 
     template <typename MetaT>
-    StateHandle StateHandle::create(MetaT&& meta)
+    StateHandle StateHandle::create(MetaT &&meta)
     {
         StateHandle rval{};
         rval.val = std::forward<MetaT>(meta);
         return rval;
     }
-    
 
 #define YYSTYPE minic::lexer::StateHandle
 

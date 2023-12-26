@@ -44,6 +44,16 @@ namespace minic::lexer
         return logger << "BoolLiteralMeta{ .value=" << std::boolalpha << boolLiteralMeta.value << " }";
     }
 
+    bool IdentifierMeta::operator==(const IdentifierMeta& other) const
+    {
+        return this->name == other.name;
+    }
+
+    LoggerT& operator<<(LoggerT& logger, const IdentifierMeta& identifierMeta)
+    {
+        return logger << "IdentifierMeta{ .name=" << identifierMeta.name << " }";
+    }
+
     bool StateHandle::operator==(const StateHandle &other) const
     {
         return this->val == other.val;
@@ -150,6 +160,8 @@ namespace minic::lexer
             return "MC_FLOAT_LITERAL";
         case MC_BOOL_LITERAL:
             return "MC_BOOL_LITERAL";
+        case MC_IDENTIFIER:
+            return "MC_IDENTIFIER";
             // no-default
         }
         return "~~UNKNOWN~~";
