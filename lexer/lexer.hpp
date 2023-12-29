@@ -14,7 +14,6 @@ namespace minic::lexer
     enum token_tag
     {
         ERROR = 11,
-        WHITESPACE = 12,
         IF_KWD = 13,
         ELSE_KWD = 14,
         WHILE_KWD = 15,
@@ -48,22 +47,21 @@ namespace minic::lexer
 
         LPAR = 40,
         RPAR = 41,
-        LBRACE = 43,
-        RBRACE = 44,
-        SEMI = 45,
+        LBRACE = 42,
+        RBRACE = 43,
+        SEMI = 44,
 
-        INTEGER_LITERAL = 46,
-        STRING_LITERAL = 47,
-        FLOAT_LITERAL = 48,
-        BOOL_LITERAL = 49,
+        INTEGER_LITERAL = 45,
+        STRING_LITERAL = 46,
+        FLOAT_LITERAL = 47,
+        BOOL_LITERAL = 48,
 
-        IDENTIFIER = 50,
+        IDENTIFIER = 49,
     };
 
 #define YYTOKENTYPE minic::lexer::token_tag
 
 #define MC_ERROR minic::lexer::token_tag::ERROR
-#define MC_WHITESPACE minic::lexer::token_tag::WHITESPACE
 #define MC_IF_KWD minic::lexer::token_tag::IF_KWD
 #define MC_ELSE_KWD minic::lexer::token_tag::ELSE_KWD
 #define MC_WHILE_KWD minic::lexer::token_tag::WHILE_KWD
@@ -222,9 +220,7 @@ namespace minic::lexer
         return rval;
     }
 
-#define YYSTYPE minic::lexer::StateHandle
-
-    inline YYSTYPE minic_state_handle{};
+    inline minic::lexer::StateHandle minic_state_handle{};
 
     struct token
     {

@@ -12,9 +12,7 @@
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr = nullptr;
 
-extern YYSTYPE minic::lexer::minic_state_handle;
-
-size_t comment_depth = 0;
+extern minic::lexer::StateHandle minic::lexer::minic_state_handle;
 %}
 
 IF_KWD          if
@@ -219,7 +217,6 @@ IDENTIFIER      ("_"|[a-z]|[A-Z])("_"|[a-z]|[A-Z]|{DIGIT})*
     minic::lexer::minic_state_handle.get_writer<rt>(minic::lexer::IdentifierMeta{.name=yytext});
     return rt;
 }
-
 
 <<EOF>>        { return 0; }
 
