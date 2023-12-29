@@ -86,8 +86,6 @@ namespace minic::lexer
         {
         case MC_ERROR:
             return "MC_ERROR";
-        case MC_WHITESPACE:
-            return "MC_WHITESPACE";
         case MC_IF_KWD:
             return "MC_IF_KWD";
         case MC_ELSE_KWD:
