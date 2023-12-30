@@ -1,9 +1,8 @@
 #pragma once
 
+#include "logger.hpp"
+
 #include <variant>
-
-#include "base/logger.hpp"
-
 // test friend
 struct StateHandleTestBackdoor;
 
@@ -58,8 +57,6 @@ namespace minic::lexer
 
         IDENTIFIER = 49,
     };
-
-#define YYTOKENTYPE minic::lexer::token_tag
 
 #define MC_ERROR minic::lexer::token_tag::ERROR
 #define MC_IF_KWD minic::lexer::token_tag::IF_KWD

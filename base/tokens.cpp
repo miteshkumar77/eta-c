@@ -1,5 +1,4 @@
-#include "lexer.hpp"
-
+#include "ast.hpp"
 #include <string>
 
 namespace minic::lexer
@@ -169,4 +168,8 @@ namespace minic::lexer
     {
         minic_state_handle = StateHandle{};
     }
+}
+
+namespace minic::ast {
+
 }

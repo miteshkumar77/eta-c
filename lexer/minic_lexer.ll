@@ -1,6 +1,5 @@
 %{
-#include "lexer/utils.hpp"
-#include "lexer/lexer.hpp" // define all static state here
+#include "base/tokens.hpp" // define all static state here
 
 /* Max size of string constants */
 #define MAX_STR_CONST 1025
@@ -8,6 +7,9 @@
 
 #define YY_USER_ACTION \
     minic::lexer::rule_setup();
+
+#define YYTOKENTYPE minic::lexer::token_tag
+
 
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr = nullptr;

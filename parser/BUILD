@@ -4,17 +4,17 @@ cc_library(
     name = "minic_parser_defs",
     srcs = ["parser.cpp"],
     hdrs = ["parser.hpp"],
-    deps = ["//base", "//lexer:minic_lexer_defs"],
+    deps = ["//base"],
 )
 
 bison_cc_library(
     name = "minic_parser",
     src = "minic_parser.yy",
-    deps = ["//lexer:minic_lexer_defs", ":minic_parser_defs"],
+    deps = ["//lexer:minic_lexer", ":minic_parser_defs"],
 )
 
 cc_binary(
     name = "minic_parser_exe",
     srcs = ["main.cpp"],
-    deps = [":minic_parser", ":minic_parser_defs"],
+    deps = ["//base", ":minic_parser", ":minic_parser_defs", "//lexer:minic_lexer"],
 )

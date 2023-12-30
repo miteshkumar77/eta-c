@@ -5,7 +5,6 @@
 %}
 
 %code requires{
-  #include "lexer/lexer.hpp"
   #include "parser/parser.hpp"
 }
 %parse-param { std::istream& yyin };
@@ -29,12 +28,18 @@
 %token EQ_BIN 35 NOTEQ_BIN 36 NOT_UN 37 AND_BIN 38 OR_BIN 39
 %token LPAR 40 RPAR 41 LBRACE 42 RBRACE 43 SEMI 44 
 %token INTEGER_LITERAL 45 STRING_LITERAL 46 FLOAT_LITERAL 47
-%token BOOL_LITERAL 48 IDENTIFIER 49
+%token BOOL_LITERAL 48 IDENTIFIER 49 END 0
 
 %% /* Grammar rules and actions follow. */
 
-exp:
-  IF_KWD
+expr:
+  IF_KWD;
+
 ;
 
 %%
+
+void yy::parser::error(const std::string& msg)
+{
+  std::cerr << "YYPARSER ERROR: " << msg << std::endl;
+}

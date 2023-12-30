@@ -1,5 +1,4 @@
-#include "lexer/lexer.hpp"
-
+#include "base/tokens.hpp"
 #include <FlexLexer.h>
 #include <iostream>
 #include <fstream>

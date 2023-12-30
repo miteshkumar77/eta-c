@@ -3,7 +3,7 @@
 #include <variant>
 
 #include "base/logger.hpp"
-#include "lexer/lexer.hpp"
+#include "base/tokens.hpp"
 #include <FlexLexer.h>
 
 namespace minic::parser {
@@ -18,4 +18,8 @@ namespace minic::parser {
   };
 
   #define YYSTYPE minic::lexer::StateHandle
+
+  struct program
+  {};
+
 }

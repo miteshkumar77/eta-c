@@ -1,8 +1,8 @@
 #include "lexer_test_utils.hpp"
 
 #include <boost/iostreams/stream.hpp>
-#include <FlexLexer.h>
 #include <iostream>
+#include <FlexLexer.h>
 
 namespace minic::lexer::test {
 std::vector<token> tokenize(const std::string_view input)

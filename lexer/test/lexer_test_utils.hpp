@@ -1,4 +1,5 @@
-#include "lexer/lexer.hpp"
+#pragma once
+#include "base/tokens.hpp"
 #include <string_view>
 #include <vector>
 

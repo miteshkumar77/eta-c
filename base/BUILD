@@ -1,6 +1,6 @@
 cc_library(
     name = "base",
-    srcs = [],
-    hdrs = ["logger.hpp"],
+    srcs = ["ast.cpp", "tokens.cpp"],
+    hdrs = ["logger.hpp", "ast.hpp", "tokens.hpp"],
     visibility = ["//visibility:public"],
 )

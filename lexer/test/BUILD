@@ -2,7 +2,7 @@ cc_library(
     name="lexer_test_utils",
     srcs=["lexer_test_utils.cpp"],
     hdrs=["lexer_test_utils.hpp"],
-    deps=["//lexer:minic_utils",
+    deps=["//base",
           "//lexer:minic_lexer",
           "@boost//:iostreams",]
 )
@@ -12,8 +12,7 @@ cc_test(
     srcs=["lexer_Test.cpp"],
     deps=["@com_google_googletest//:gtest_main",
           "@com_google_googletest//:gtest",
-          "//lexer:minic_utils",
-          ":lexer_test_utils",
+          "//base",
           "//lexer:minic_lexer",
-          ],
+          ":lexer_test_utils",],
 )
