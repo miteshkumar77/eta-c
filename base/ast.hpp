@@ -6,6 +6,7 @@
 #include <functional>
 #include <string>
 #include <variant>
+#include <vector>
 
 namespace minic::ast
 {
@@ -14,6 +15,9 @@ namespace minic::ast
   // e.g. line number
   struct BaseNodeArgs
   {
+    // for generating ast dump only
+    const bool new_line = false;
+    const int indent = {0};
   };
 
   class AstNode
@@ -138,11 +142,33 @@ namespace minic::ast
     const expr_t m_expr;
   };
 
+  // statement
+  class Declaration : public AstNode
+  {
+  public:
+    explicit Declaration(const BaseNodeArgs &args, TypeId &&type_id,
+                         Identifier &&identifier, Expression &&expression) : AstNode{args}, m_type_id{std::move(type_id)},
+                                                                             m_identifier{std::move(identifier)}, m_expr{std::move(expression)} {}
+
+  private:
+    void stream_each_member(const StreamKeyValueFnT &fn) const override;
+    const char *get_name() const override;
+
+  public:
+    friend LoggerT &operator<<(LoggerT &logger, const Declaration &declaration);
+
+  private:
+    const TypeId m_type_id;
+    const Identifier m_identifier;
+    const Expression m_expr;
+  };
+
+  // statement
   class Assignment : public AstNode
   {
   public:
-    explicit Assignment(const BaseNodeArgs &args, TypeId &&type_id,
-                        Identifier &&identifier, Expression &&expression) : AstNode{args}, m_type_id{std::move(type_id)},
+    explicit Assignment(const BaseNodeArgs &args,
+                        Identifier &&identifier, Expression &&expression) : AstNode{args},
                                                                             m_identifier{std::move(identifier)}, m_expr{std::move(expression)} {}
 
   private:
@@ -153,9 +179,46 @@ namespace minic::ast
     friend LoggerT &operator<<(LoggerT &logger, const Assignment &assignment);
 
   private:
-    const TypeId m_type_id;
     const Identifier m_identifier;
     const Expression m_expr;
+  };
+
+  class Statement;
+
+  class Block : public AstNode
+  {
+  public:
+    using stmt_list_t = std::vector<Statement>;
+    explicit Block(const BaseNodeArgs &args, stmt_list_t &&statement_list)
+        : AstNode{args}, m_stmt_list{statement_list} {}
+
+  private:
+    void stream_each_member(const StreamKeyValueFnT &fn) const override;
+    const char *get_name() const override;
+
+  public:
+    friend LoggerT &operator<<(LoggerT &logger, const Block &block);
+
+  private:
+    const stmt_list_t m_stmt_list;
+  };
+
+  class Statement : public AstNode
+  {
+  public:
+    using statement_t = std::variant<Assignment, Declaration, Block>;
+    explicit Statement(const BaseNodeArgs &args,
+                       statement_t &&statement) : AstNode{args}, m_stmt{statement} {}
+
+  private:
+    void stream_each_member(const StreamKeyValueFnT &fn) const override;
+    const char *get_name() const override;
+
+  public:
+    friend LoggerT &operator<<(LoggerT &logger, const Statement &statement);
+
+  private:
+    const statement_t m_stmt;
   };
 
 }

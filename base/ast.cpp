@@ -34,6 +34,14 @@ namespace minic::ast
   }
   void AstNode::ostream_helper(LoggerT &logger) const
   {
+    if (this->m_args.new_line)
+    {
+      logger << '\n';
+    }
+    for (int i = 0; i < this->m_args.indent; ++i)
+    {
+      logger << '\t';
+    }
     logger << this->get_name() << "{";
     stream_each_member([&logger](const StreamFieldFnT &pKey, const StreamFieldFnT &pVal, bool isLast)
                        {
@@ -43,6 +51,7 @@ namespace minic::ast
       pVal(logger);
       if (!isLast) logger << ", "; });
     logger << "}";
+
     return;
   }
 
@@ -173,7 +182,7 @@ namespace minic::ast
     return logger;
   }
 
-  void Assignment::stream_each_member(const StreamKeyValueFnT &fn) const
+  void Declaration::stream_each_member(const StreamKeyValueFnT &fn) const
   {
     fn([](LoggerT &l)
        { l << "type_id"; },
@@ -198,16 +207,99 @@ namespace minic::ast
        true);
   }
 
+  const char *Declaration::get_name() const
+  {
+    static constexpr char name[] = "Declaration";
+    return name;
+  }
+
+  LoggerT &operator<<(LoggerT &logger, const Declaration &declaration)
+  {
+    declaration.ostream_helper(logger);
+    return logger;
+  }
+
+  void Assignment::stream_each_member(const StreamKeyValueFnT &fn) const
+  {
+    fn([](LoggerT &l)
+       { l << "identifier"; },
+       [self = this](LoggerT &l)
+       {
+         l << self->m_identifier;
+       },
+       false);
+    fn([](LoggerT &l)
+       { l << "expr"; },
+       [self = this](LoggerT &l)
+       {
+         l << self->m_expr;
+       },
+       true);
+  }
+
   const char *Assignment::get_name() const
   {
     static constexpr char name[] = "Assignment";
     return name;
   }
 
-  LoggerT &operator<<(LoggerT &logger, const Assignment &assignment)
+  LoggerT &operator<<(LoggerT &logger, const Assignment &declaration)
   {
-    assignment.ostream_helper(logger);
+    declaration.ostream_helper(logger);
     return logger;
   }
 
+  void Statement::stream_each_member(const StreamKeyValueFnT &fn) const
+  {
+    fn([](LoggerT &l)
+       { l << "stmt"; },
+       [self = this](LoggerT &l)
+       {
+         std::visit([&l](auto &&arg)
+                    { l << arg; },
+                    self->m_stmt);
+       },
+       true);
+  }
+
+  const char *Statement::get_name() const
+  {
+    static constexpr char name[] = "Statement";
+    return name;
+  }
+
+  LoggerT &operator<<(LoggerT &logger, const Statement &statement)
+  {
+    statement.ostream_helper(logger);
+    return logger;
+  }
+
+  void Block::stream_each_member(const StreamKeyValueFnT &fn) const
+  {
+    fn([](LoggerT &l)
+       { l << "stmt_list"; },
+       [self = this](LoggerT &l)
+       {
+         l << "{";
+         for (size_t i = 0; i < self->m_stmt_list.size(); ++i)
+         {
+           l << "#[" << i << "]:<"
+             << self->m_stmt_list[i] << ">";
+         }
+         l << "}";
+       },
+       true);
+  }
+
+  const char *Block::get_name() const
+  {
+    static constexpr char name[] = "Block";
+    return name;
+  }
+
+  LoggerT &operator<<(LoggerT &logger, const Block &block)
+  {
+    block.ostream_helper(logger);
+    return logger;
+  }
 }
