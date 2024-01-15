@@ -153,13 +153,6 @@ namespace minic::ast
   void Expression::stream_each_member(const StreamKeyValueFnT &fn) const
   {
     fn([](LoggerT &l)
-       { l << "expr_type"; },
-       [self = this](LoggerT &l)
-       {
-         stream_basic_type(l, self->m_expr_type);
-       },
-       false);
-    fn([](LoggerT &l)
        { l << "expr"; },
        [self = this](LoggerT &l)
        {

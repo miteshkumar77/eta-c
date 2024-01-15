@@ -30,10 +30,33 @@
 %token INTEGER_LITERAL 45 STRING_LITERAL 46 FLOAT_LITERAL 47
 %token BOOL_LITERAL 48 IDENTIFIER 49 END 0
 
+%nterm <minic::ast::Expression> expr
+
+%term <minic::ast::Assignment> assignment
+%term <minic::ast::Declaration> declaration
+%term <minic::ast::TypeId> type_id
+%term <minic::ast::Identifier> identifier
+
 %% /* Grammar rules and actions follow. */
 
-expr:
-  IF_KWD;
+expr : declaration
+    {
+      $$ = minic::ast::Expression(minic::ast::BaseNodeArgs{}, $1);
+    }
+  | assignment
+    {
+      $$ = minic::ast::Expression(minic::ast::BaseNodeArgs{}, $1);
+    }
+  | 
+
+assignment : type_id identifier ASSIGN_BIN expr SEMI
+  {
+    $$ = minic::ast::Assignment(minic::ast::BaseNodeArgs{},
+      $1, $2, $3);
+  }
+
+type_id : 
+
 
 ;
 

@@ -128,7 +128,7 @@ namespace minic::ast
     explicit Expression(
         const BaseNodeArgs &args,
         basic_type expr_type, expr_t expr) : AstNode{args},
-                                             m_expr_type{expr_type}, m_expr{expr} {}
+                                             m_expr{expr} {}
 
   private:
     void stream_each_member(const StreamKeyValueFnT &fn) const override;
@@ -138,7 +138,6 @@ namespace minic::ast
     friend LoggerT &operator<<(LoggerT &logger, const Expression &expression);
 
   private:
-    const basic_type m_expr_type;
     const expr_t m_expr;
   };
 
@@ -220,5 +219,4 @@ namespace minic::ast
   private:
     const statement_t m_stmt;
   };
-
 }
