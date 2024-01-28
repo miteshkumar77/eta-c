@@ -1,30 +1,17 @@
-load("@rules_flex//flex:flex.bzl", "flex_cc_library", "flex")
+load("@rules_flex//flex:flex.bzl", "flex_cc_library")
 
-cc_library(
-    name = "minic_lexer_defs",
-    srcs = ["lexer.cpp"],
-    hdrs = ["lexer.hpp"],
-    visibility = ["//visibility:public"],
-    deps = ["//base",],
-)
-
-cc_library(
-    name = "minic_utils",
-    srcs = ["utils.cpp"],
-    hdrs = ["utils.hpp"],
-    visibility = ["//visibility:public"],
-)
+package(default_visibility = ["//visibility:public"])
 
 flex_cc_library(
-    name = "minic_lexer",
-    src = "minic_lexer.ll",
-    deps = [":minic_utils", ":minic_lexer_defs"],
+    name = "lib_eta_lexer",
+    src = "eta_lexer.ll",
+    flex_options = [
+        "--c++",
+        "--noyywrap",
+    ],
     visibility = ["//visibility:public"],
-    flex_options = ["--c++", "--noyywrap"],
-)
-
-cc_binary(
-    name = "minic_lexer_exe",
-    srcs = ["main.cpp"],
-    deps = [":minic_lexer_defs", ":minic_lexer"]
+    deps = [
+        "//base",
+        "//parser:lib_eta_parser",
+    ],
 )

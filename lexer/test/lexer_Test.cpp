@@ -1,505 +1,113 @@
-#include <gtest/gtest.h>
+
+#include "tools/cpp/runfiles/runfiles.h"
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <sstream>
 
-#include <FlexLexer.h>
-#include "lexer_test_utils.hpp"
+#include "lexer/test/test_lexer.hpp"
 
-using minic::lexer::ArbitraryLiteralMeta;
-using minic::lexer::BoolLiteralMeta;
-using minic::lexer::ErrorMeta;
-using minic::lexer::IdentifierMeta;
-using minic::lexer::StateHandle;
-using minic::lexer::token;
-using minic::lexer::test::tokenize;
+using bazel::tools::cpp::runfiles::Runfiles;
+using namespace eta;
+using namespace eta::test;
 
-using ::testing::ElementsAre;
+using testing::ElementsAre;
 
-TEST(LexerTest, WhiteSpaceTest)
-{
-  const std::string input(" a ");
-  std::istringstream is(input);
-  yyFlexLexer fl(&is, &std::cerr);
-  int rc{0};
-  while ((rc = fl.yylex()) != static_cast<int>(0))
-  {
-    std::cerr << "lexed rc: " << rc << ", for text: "
-              << fl.YYText() << std::endl;
+class LexerTest : public testing::Test {
+protected:
+  void SetUp() override {
+    std::string error;
+    runfiles = std::unique_ptr<Runfiles>(Runfiles::CreateForTest(&error));
+    ASSERT_TRUE(runfiles) << "unable to open runfiles, error: " << error;
   }
-}
-
-TEST(LexerTest, IfKeywordTest)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize(" if ");
-
-    ASSERT_THAT(tokens, ElementsAre(token{.tag = MC_IF_KWD,
-                                          .meta = {}}));
+  std::vector<LexerRval> tokenize_filename(const std::string &name) {
+    static const std::string prefix = "etac/lexer/test/data/";
+    const std::string fullFilePath = runfiles->Rlocation(prefix + name);
+    return tokenize_file(fullFilePath);
   }
-  {
-    const std::vector<token> tokens =
-        tokenize(" if\nif if  if\nif\nif ");
-
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            }));
-  }
-}
-
-TEST(LexerTest, Parens)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("( \n \t )");
-
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            }));
-  }
-}
-
-TEST(LexerTest, LineCmt)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("{( //)}}\n)}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LBRACE,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-
-  {
-    const std::vector<token> tokens =
-        tokenize("//)}}\n{( //abcdef123\t\n\t))}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LBRACE,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-}
-
-TEST(LexerTest, MultiLineCmt)
-{
-
-  {
-    const std::vector<token> tokens =
-        tokenize("{( /*)}}\n)*/)}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LBRACE,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-  {
-    const std::vector<token> tokens =
-        tokenize("/\t/*abc\n}}{{}}\n\t\n*//))}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-
-  {
-    const std::vector<token> tokens =
-        tokenize("//*abc\n/*}}{{}}\n\t\n*//))}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-
-  {
-    const std::vector<token> tokens =
-        tokenize("{(/*//\n\n\t+*///)}\n)}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LBRACE,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-}
-
-struct StateHandleTestBackdoor
-{
-  template <typename MetaT>
-  static StateHandle create(MetaT &&meta)
-  {
-    return StateHandle::create(std::forward<MetaT>(meta));
-  }
+  std::unique_ptr<Runfiles> runfiles{nullptr};
 };
 
-TEST(LexerTest, IntegerLiteral)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("( 123 1 0 1\n1)223");
-
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_INTEGER_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "123"})},
-                            },
-                            token{
-                                .tag = MC_INTEGER_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "1"})},
-                            },
-                            token{
-                                .tag = MC_INTEGER_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "0"})},
-                            },
-                            token{
-                                .tag = MC_INTEGER_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "1"})},
-                            },
-                            token{
-                                .tag = MC_INTEGER_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "1"})},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_INTEGER_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "223"})},
-                            }));
+#define BT(name)                                                               \
+  LexerRval {                                                                  \
+    .type = yy::parser::token::yytokentype::TOK_##name, .meta = TokenMeta {}   \
   }
+#define ID(str)                                                                \
+  LexerRval {                                                                  \
+    .type = yy::parser::token::yytokentype::TOK_IDENTIFIER,                    \
+    .meta = TokenMeta {                                                        \
+      .identifier_name = str                                                   \
+    }                                                                          \
+  }
+#define IL(str)                                                                \
+  LexerRval {                                                                  \
+    .type = yy::parser::token::yytokentype::TOK_INT_LITERAL,                   \
+    .meta = TokenMeta {                                                        \
+      .int_content = str                                                       \
+    }                                                                          \
+  }
+
+#define SL(str)                                                                \
+  LexerRval {                                                                  \
+    .type = yy::parser::token::yytokentype::TOK_STR_LITERAL,                   \
+    .meta = TokenMeta {                                                        \
+      .uc_content = eta::util::to_wstring(str)                                 \
+    }                                                                          \
+  }
+
+#define CL(str)                                                                \
+  LexerRval {                                                                  \
+    .type = yy::parser::token::yytokentype::TOK_CHAR_LITERAL,                  \
+    .meta = TokenMeta {                                                        \
+      .uc_content = eta::util::to_wstring(str)                                 \
+    }                                                                          \
+  }
+
+TEST_F(LexerTest, BasicTest) {
+
+  EXPECT_THAT(tokenize_filename("all_basic_tokens.eta"),
+              ElementsAre(BT(USE_KWD), BT(COLON), BT(INT_TYPE), BT(OP_ASSIGN),
+                          BT(SEMICOLON), BT(BOOL_TYPE), BT(LPAREN), BT(RPAREN),
+                          BT(LBRACKET), BT(WHILE_KWD), BT(COMMA), BT(IF_KWD),
+                          BT(ELSE_KWD), BT(RETURN_KWD), BT(RBRACKET),
+                          BT(OP_MINUS), BT(OP_NEQ), BT(OP_LNOT), BT(OP_MUL),
+                          BT(OP_HIGHMUL), BT(OP_MUL), BT(OP_G_THAN), BT(OP_DIV),
+                          BT(OP_MOD), BT(OP_ADD), BT(OP_MINUS), BT(OP_L_THAN),
+                          BT(OP_LEQ_THAN), BT(OP_GEQ_THAN), BT(OP_G_THAN),
+                          BT(OP_EQ), BT(OP_LAND), BT(OP_LOR), BT(LENGTH_KWD),
+                          BT(TRUE_LITERAL), BT(FALSE_LITERAL)));
 }
 
-TEST(LexerTest, FloatLiteral)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("( 123.1234 1.0 0.1 1.\n1.13)223.90");
-
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_FLOAT_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "123.1234"})},
-                            },
-                            token{
-                                .tag = MC_FLOAT_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "1.0"})},
-                            },
-                            token{
-                                .tag = MC_FLOAT_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "0.1"})},
-                            },
-                            token{
-                                .tag = MC_FLOAT_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "1."})},
-                            },
-                            token{
-                                .tag = MC_FLOAT_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "1.13"})},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_FLOAT_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(
-                                    ArbitraryLiteralMeta{.content = "223.90"})},
-                            }));
-  }
+TEST_F(LexerTest, IdentifierTest) {
+  EXPECT_THAT(tokenize_filename("identifiers.eta"),
+              ElementsAre(BT(IF_KWD), BT(ELSE_KWD), BT(WHILE_KWD), BT(USE_KWD),
+                          BT(RETURN_KWD), BT(INT_TYPE), BT(BOOL_TYPE),
+                          ID("intbool"), ID("int'"), ID("int_"), ID("Int_"),
+                          ID("IntABC1'2_3"), BT(OP_LNOT), ID("b")));
 }
 
-TEST(LexerTest, StringLiteral)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("/+-/%\"ab//a/*b*/1\"//\"aba//b1\"\n}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_PLUS_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_MINUS_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_MOD_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_STRING_LITERAL,
-                                .meta = StateHandleTestBackdoor::create(ArbitraryLiteralMeta{
-                                    .content = std::string("ab//a/*b*/1")}),
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
-  {
-    const std::vector<token> tokens =
-        tokenize("/+-/%\"ab//a/*b*/1\\f\\t\\n\\bq\\\"\"//\"aba//b1\"\n}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_PLUS_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_MINUS_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_DIV_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_MOD_BIN,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_STRING_LITERAL,
-                                .meta = StateHandleTestBackdoor::create(ArbitraryLiteralMeta{
-                                    .content = std::string("ab//a/*b*/1\f\t\n\bq\"")}),
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
+TEST_F(LexerTest, IntLiteralTest) {
+  EXPECT_THAT(tokenize_filename("integer_literals.eta"),
+              ElementsAre(BT(LBRACE), IL(1), BT(COMMA), IL(2), BT(COMMA),
+                          ID("a12"), BT(COMMA), ID("A12"), BT(COMMA),
+                          ID("b'12"), BT(COMMA), IL(4), BT(COMMA), IL(100),
+                          BT(OP_MINUS), IL(2), BT(COMMA), BT(OP_MINUS), IL(20),
+                          BT(RBRACE), BT(SEMICOLON), IL(10), BT(OP_MINUS),
+                          IL(2), BT(SEMICOLON)));
 }
 
-TEST(LexerTest, BoolLiteral)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("{true false}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LBRACE,
-                                .meta = {}},
-                            token{
-                                .tag = MC_BOOL_LITERAL,
-                                .meta = StateHandleTestBackdoor::create(BoolLiteralMeta{.value = true}),
-                            },
-                            token{
-                                .tag = MC_BOOL_LITERAL,
-                                .meta = StateHandleTestBackdoor::create(BoolLiteralMeta{.value = false}),
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {}}));
-  }
-}
-
-TEST(LexerTest, IdentifierTest)
-{
-  {
-    const std::vector<token> tokens =
-        tokenize("{truefalse; true; false; ifelse if() else()}");
-    ASSERT_THAT(tokens, ElementsAre(
-                            token{
-                                .tag = MC_LBRACE,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IDENTIFIER,
-                                .meta = StateHandleTestBackdoor::create(IdentifierMeta{.name = std::string("truefalse")}),
-                            },
-                            token{
-                                .tag = MC_SEMI,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_BOOL_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(BoolLiteralMeta{.value = true})},
-                            },
-                            token{
-                                .tag = MC_SEMI,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_BOOL_LITERAL,
-                                .meta = {StateHandleTestBackdoor::create(BoolLiteralMeta{.value = false})},
-                            },
-                            token{
-                                .tag = MC_SEMI,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_IDENTIFIER,
-                                .meta = StateHandleTestBackdoor::create(IdentifierMeta{.name = std::string("ifelse")}),
-                            },
-                            token{
-                                .tag = MC_IF_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_ELSE_KWD,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_LPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RPAR,
-                                .meta = {},
-                            },
-                            token{
-                                .tag = MC_RBRACE,
-                                .meta = {},
-                            }));
-  }
+TEST_F(LexerTest, StrLiteralTest) {
+  EXPECT_THAT(
+      tokenize_filename("string_literals.eta"),
+      ElementsAre(BT(INT_TYPE), BT(LBRACKET), BT(RBRACKET), BT(OP_ASSIGN),
+                  SL("ascii string literal"), BT(SEMICOLON), BT(INT_TYPE),
+                  BT(LBRACKET), BT(RBRACKET), BT(OP_ASSIGN),
+                  SL("string with newline \n newline \t \\ \" '' "),
+                  BT(SEMICOLON), BT(INT_TYPE), BT(LBRACKET), BT(RBRACKET),
+                  BT(OP_ASSIGN), SL("string with a unicode char \\\n"),
+                  BT(SEMICOLON), BT(INT_TYPE), BT(LBRACKET), BT(RBRACKET),
+                  BT(OP_ASSIGN), BT(LBRACE), CL("\n"), BT(COMMA), ID("waa"),
+                  BT(COMMA), CL("\'"), BT(COMMA), CL("\n"), BT(RBRACE),
+                  BT(SEMICOLON)));
 }
