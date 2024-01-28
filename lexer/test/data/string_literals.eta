@@ -1,0 +1,4 @@
+int[] = "ascii string literal";
+int[] = "string with newline \n newline \t \\ \" \'' ";
+int[] = "string with a unicode char \\\x{0a}";
+int[] = {'\x{0a}', waa, '\'', '\n'};

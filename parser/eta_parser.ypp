@@ -1,0 +1,84 @@
+%{
+  #include <stdio.h>
+  #include <math.h>
+  #include <utility>
+
+namespace eta {
+  class etaFlexLexer;
+}
+
+int yylex(/*yy::parser::semantic_type*/void* parser_look_ahead_sym, eta::etaFlexLexer& lexer);
+
+%}
+
+%code requires {
+  #include "base/defs.hpp"
+
+  struct my_temp
+  {
+    int x;
+  };
+
+  struct my_multi_temp
+  {
+    my_temp lhs;
+    my_temp rhs;
+  };
+}
+
+%parse-param { std::istream& yyin  };
+%parse-param { std::ostream& yyout };
+%parse-param { eta::etaFlexLexer& lexer  };
+%lex-param   { eta::etaFlexLexer& lexer  };
+
+%initial-action
+{
+  // begin the lexer at the start of a new yyin stream
+  // this way we can parse multiple files with individual
+  // parsing objects
+  lexer.switch_streams(yyin, yyout);
+}
+
+%define api.value.type variant
+%define api.token.prefix {TOK_}
+
+%token <eta::TokenMeta> IDENTIFIER
+%token USE_KWD WHILE_KWD IF_KWD ELSE_KWD RETURN_KWD
+%token LENGTH_KWD
+%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
+%token COLON SEMICOLON COMMA
+%token INT_TYPE BOOL_TYPE
+%token TRUE_LITERAL FALSE_LITERAL
+%token <eta::TokenMeta> STR_LITERAL CHAR_LITERAL INT_LITERAL
+%token OP_ASSIGN OP_MINUS OP_LNOT OP_MUL OP_HIGHMUL
+       OP_DIV OP_MOD OP_ADD OP_L_THAN OP_LEQ_THAN
+       OP_GEQ_THAN OP_G_THAN OP_EQ OP_NEQ OP_LAND OP_LOR
+
+%nterm <my_multi_temp> multi_exp
+%nterm <my_temp> exp
+
+%%
+program: exp | multi_exp
+
+exp : LPAREN RPAREN
+  {
+    $$ = my_temp{.x=4};
+  }
+  ;
+multi_exp : LBRACKET exp exp RBRACKET
+  {
+    $$ = my_multi_temp{.lhs=$2, .rhs=$3};
+  }
+  ;
+%%
+
+namespace eta {
+extern TokenMeta symbol_to_parser;
+}
+
+int yylex(void* parser_look_ahead_sym, eta::etaFlexLexer& lexer)
+{
+  int rval = lexer.yylex();
+  reinterpret_cast<yy::parser::semantic_type*>(parser_look_ahead_sym)->emplace<eta::TokenMeta, eta::TokenMeta&&>(std::move(eta::symbol_to_parser));
+  return rval;
+}
