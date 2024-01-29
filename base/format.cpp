@@ -50,9 +50,6 @@ auto ustr_util::append_unicode_char(std::wstring &wstr,
   uint32_t result{};
   char const *const begin = unicode_char + 3;
   char const *const end = std::strlen(begin) - 1 + begin;
-  for (char const *c = begin; c != end; ++c) {
-    std::cout << "decoding char=" << *c << std::endl;
-  }
   auto [ptr, ec] = std::from_chars(begin, end, result, 16);
   if (ec == std::errc{}) {
     if (ptr != end) {
@@ -61,7 +58,6 @@ auto ustr_util::append_unicode_char(std::wstring &wstr,
     if (result > max_ucode) {
       return err{};
     }
-    std::cout << "final result=" << result << std::endl;
     wstr.push_back(static_cast<wchar_t>(result));
     return std::nullopt;
   } else {

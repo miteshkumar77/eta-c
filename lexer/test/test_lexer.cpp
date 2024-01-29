@@ -2,6 +2,7 @@
 #include "parser/lib_eta_parser_utils.hpp"
 
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 
 namespace eta {
@@ -24,6 +25,10 @@ std::vector<LexerRval> tokenize_istream(std::istream &is) {
         .type = static_cast<yy::parser::token::yytokentype>(rc),
         .meta = std::move(symbol_to_parser),
     });
+    if (result.back().type == yy::parser::token::yytokentype::TOK_ERROR) {
+      // lex error
+      break;
+    }
   }
   return result;
 }

@@ -4,4 +4,4 @@
 
 namespace eta {
 char const *token_to_string(yy::parser::token::yytokentype token);
-}
+} // namespace eta

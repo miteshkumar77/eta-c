@@ -54,6 +54,8 @@ int yylex(/*yy::parser::semantic_type*/void* parser_look_ahead_sym, eta::etaFlex
        OP_DIV OP_MOD OP_ADD OP_L_THAN OP_LEQ_THAN
        OP_GEQ_THAN OP_G_THAN OP_EQ OP_NEQ OP_LAND OP_LOR
 
+%token ERROR
+
 %nterm <my_multi_temp> multi_exp
 %nterm <my_temp> exp
 

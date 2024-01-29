@@ -14,7 +14,7 @@ cc_test(
     name = "lexer_test",
     size = "small",
     srcs = ["lexer_Test.cpp"],
-    data = glob(['data/*.eta']),
+    data = glob(['data/*.eta', 'data/*.eti']),
     deps = [
         ":test_lexer",
         "//base",
@@ -27,7 +27,7 @@ cc_test(
 cc_binary(
   name = "main_exe",
   srcs = ["main.cpp"],
-  data = glob(['data/*.eta']),
+  data = glob(['data/*.eta', 'data/*.eti']),
   deps = [
     "//base",
     ":test_lexer",

@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     std::wcout << "~~~~~~~~~~ begin lexer output for " << lex_input_name
                << " ~~~~~~~~~~" << std::endl;
     for (const auto &v : tokenize_filename(lex_input_name, *rfs)) {
-      std::wcout << "[" << v << "]" << std::endl;
+      std::wcout << v << std::endl;
     }
     std::wcout << "~~~~~~~~~~ end lexer output for " << lex_input_name
                << "  ~~~~~~~~~~" << std::endl;

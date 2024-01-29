@@ -1,0 +1,2 @@
+int[] multiline_str = "multiline strings are not
+    allowed"

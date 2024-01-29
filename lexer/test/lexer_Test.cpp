@@ -64,6 +64,13 @@ protected:
     }                                                                          \
   }
 
+#define ER(str)                                                                \
+  LexerRval {                                                                  \
+    .type = yy::parser::token::yytokentype::TOK_ERROR, .meta = TokenMeta {     \
+      .error = str                                                             \
+    }                                                                          \
+  }
+
 TEST_F(LexerTest, BasicTest) {
 
   EXPECT_THAT(tokenize_filename("all_basic_tokens.eta"),
@@ -84,7 +91,8 @@ TEST_F(LexerTest, IdentifierTest) {
               ElementsAre(BT(IF_KWD), BT(ELSE_KWD), BT(WHILE_KWD), BT(USE_KWD),
                           BT(RETURN_KWD), BT(INT_TYPE), BT(BOOL_TYPE),
                           ID("intbool"), ID("int'"), ID("int_"), ID("Int_"),
-                          ID("IntABC1'2_3"), BT(OP_LNOT), ID("b")));
+                          ID("IntABC1'2_3"), BT(OP_LNOT), ID("b"),
+                          ID("abab''a"), ER("Invalid character constant")));
 }
 
 TEST_F(LexerTest, IntLiteralTest) {
@@ -110,4 +118,34 @@ TEST_F(LexerTest, StrLiteralTest) {
                   BT(OP_ASSIGN), BT(LBRACE), CL("\n"), BT(COMMA), ID("waa"),
                   BT(COMMA), CL("\'"), BT(COMMA), CL("\n"), BT(RBRACE),
                   BT(SEMICOLON)));
+}
+
+TEST_F(LexerTest, MultiLineStrLiteralErrorTest) {
+  EXPECT_THAT(
+      tokenize_filename("multiline_string_literal_error.eta"),
+      ElementsAre(
+          BT(INT_TYPE), BT(LBRACKET), BT(RBRACKET), ID("multiline_str"),
+          BT(OP_ASSIGN),
+          LexerRval{.type = yy::parser::token::yytokentype::TOK_ERROR,
+                    .meta = TokenMeta{
+                        .uc_content =
+                            eta::util::to_wstring("multiline strings are not"),
+                        .error = "multi-line string literal not allowed"}}));
+}
+
+TEST_F(LexerTest, EscapedMultiLineStrLiteralErrorTest) {
+  for (const auto &v :
+       tokenize_filename("escaped_multiline_string_literal_error.eta")) {
+    std::wcout << v << std::endl;
+  }
+  EXPECT_THAT(
+      tokenize_filename("escaped_multiline_string_literal_error.eta"),
+      ElementsAre(
+          BT(INT_TYPE), BT(LBRACKET), BT(RBRACKET),
+          ID("escaped_multiline_string"), BT(OP_ASSIGN),
+          LexerRval{.type = yy::parser::token::yytokentype::TOK_ERROR,
+                    .meta = TokenMeta{
+                        .uc_content = eta::util::to_wstring(
+                            "escaped multiline strings are also \\"),
+                        .error = "multi-line string literal not allowed"}}));
 }

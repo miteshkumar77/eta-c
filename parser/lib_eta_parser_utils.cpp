@@ -45,6 +45,7 @@ char const *token_to_string(yy::parser::token::yytokentype t) {
     CASE(OP_NEQ);
     CASE(OP_LAND);
     CASE(OP_LOR);
+    CASE(ERROR);
 #undef CASE
   }
   return "<unknown>";
