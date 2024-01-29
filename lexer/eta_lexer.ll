@@ -27,12 +27,12 @@
 
   void lex_special_char(char const*const yytext);
 
-  static int64_t s_eta_line_number; // static: only written in lib_eta_lexer.cc
-  static int64_t s_eta_column_number; // static: only written in lib_eta_lexer.cc
+  static int64_t s_eta_line_number{0}; // static: only written in lib_eta_lexer.cc
+  static int64_t s_eta_column_number{0}; // static: only written in lib_eta_lexer.cc
 
 %}
 
-WHITESPACE (" "|\f|\r|\t|\v)
+WHITESPACE (" "|\f|\r|\t|\v|\n)
 LINE_CMT "//"
 IDENTIFIER [a-zA-Z][a-zA-Z0-9_']*
 DIGIT [0-9]
@@ -58,7 +58,12 @@ UNICODE_CHAR \\x\{[0-9a-fA-F]+\}
 "\"" {
   BEGIN(STR_LITERAL_SCOPE);
 }
-<STR_LITERAL_SCOPE>\\[^x] {
+<STR_LITERAL_SCOPE>\n { // don't allow escaped multi-line either, so put this first
+  BEGIN(INITIAL);
+  eta::symbol_to_parser.error = "multi-line string literal not allowed";
+  return ETATOK(ERROR);
+}
+<STR_LITERAL_SCOPE>\\[^x\n] {
   lex_special_char(yytext);
 }
 <STR_LITERAL_SCOPE>"\"" {
@@ -110,6 +115,10 @@ false { return ETATOK(FALSE_LITERAL); }
   std::optional<eta::ustr_util::err> ec = eta::ustr_util::append_unicode_char(eta::symbol_to_parser.uc_content, yytext+1);
   return ETATOK(CHAR_LITERAL);
 }
+'' {
+  eta::symbol_to_parser.error = "Invalid character constant";
+  return ETATOK(ERROR);
+}
 
 "="   { return ETATOK(OP_ASSIGN); }
 "-"   { return ETATOK(OP_MINUS); }
@@ -132,7 +141,7 @@ false { return ETATOK(FALSE_LITERAL); }
   const std::variant<int64_t, eta::int_util::err> decoded = eta::int_util::from_str(yytext);
   if (std::holds_alternative<eta::int_util::err>(decoded)) {
     eta::symbol_to_parser.error = "invalid int literal";
-    return 0;
+    return ETATOK(ERROR);
   }
 
   eta::symbol_to_parser.int_content = std::get<int64_t>(decoded);
@@ -140,6 +149,12 @@ false { return ETATOK(FALSE_LITERAL); }
   return ETATOK(INT_LITERAL);
 }
 
+<<EOF>> { return 0; }
+
+. {
+  eta::symbol_to_parser.error = "unknown character";
+  return ETATOK(ERROR);
+}
 
 %%
 
@@ -201,6 +216,7 @@ temp_nullterm::temp_nullterm(char& c) : prev_{c}, c_{c}
 {
   c_ = 0;
 }
+
 temp_nullterm::~temp_nullterm()
 {
   c_ = prev_;

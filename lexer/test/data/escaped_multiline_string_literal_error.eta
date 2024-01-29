@@ -1,0 +1,2 @@
+int[] escaped_multiline_string = "escaped multiline strings are also \
+                                  not allowed"

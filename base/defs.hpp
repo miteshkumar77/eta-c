@@ -16,6 +16,9 @@ namespace eta {
 // ONLY ONE CAN EXIST CONSTRUCTED AT ANY GIVEN TIME
 class etaFlexLexer : public yyFlexLexer {
   using base_t = yyFlexLexer;
+  using base_t::LexerOutput;
+
+  void LexerOutput(char const *const yytext, int yyleng);
 
 public:
   etaFlexLexer(std::istream *arg_yyin, std::ostream *arg_yyout);
@@ -28,7 +31,7 @@ struct TokenMeta {
   std::wstring uc_content;
   std::string identifier_name;
   int64_t int_content{0};
-  bool error{false};
+  std::string error;
   void prime_before_begin_lexing();
   bool is_for_first_token();
   void prime_for_next_token(int64_t line_number, int64_t column_number);
