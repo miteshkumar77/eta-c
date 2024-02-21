@@ -13,6 +13,7 @@ int yylex(/*yy::parser::semantic_type*/void* parser_look_ahead_sym, eta::etaFlex
 
 %code requires {
   #include "base/defs.hpp"
+  #include "lexer/lexer_defs.hpp"
 
   struct my_temp
   {

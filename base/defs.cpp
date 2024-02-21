@@ -1,5 +1,4 @@
 #include "base/defs.hpp"
-#include <cassert>
 
 namespace eta {
 LoggerT &operator<<(LoggerT &logger, const TokenMeta &tokenMeta) {
@@ -33,17 +32,5 @@ void TokenMeta::prime_for_next_token(int64_t line_number,
                                      int64_t column_number) {
   (*this) =
       TokenMeta{.line_number = line_number, .column_number = column_number};
-}
-
-etaFlexLexer::etaFlexLexer(std::istream *arg_yyin, std::ostream *arg_yyout)
-    : base_t{arg_yyin, arg_yyout} {
-  symbol_to_parser.prime_before_begin_lexing();
-  assert(symbol_to_parser.is_for_first_token());
-}
-
-void etaFlexLexer::LexerOutput(char const *const yytext, int yyleng) {
-  yyout << "line_num: " << symbol_to_parser.line_number
-        << ": col_num: " << symbol_to_parser.column_number << ": ";
-  base_t::LexerOutput(yytext, yyleng);
 }
 } // namespace eta

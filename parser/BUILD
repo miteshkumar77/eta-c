@@ -5,7 +5,7 @@ package(default_visibility = ["//visibility:public"])
 bison_cc_library(
   name = "lib_eta_parser",
   src = "eta_parser.ypp",
-  deps = ["//base"],
+  deps = ["//base", "//lexer:eta_lexer_defs",],
 )
 
 cc_library(

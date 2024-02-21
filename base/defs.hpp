@@ -4,25 +4,10 @@
 #include "base/format.hpp"
 #include "base/logger.hpp"
 
-#if !defined(yyFlexLexerOnce)
-#include <FlexLexer.h>
-#endif
-
 int64_t eta_line_number();
 int64_t eta_column_number();
 
 namespace eta {
-
-// ONLY ONE CAN EXIST CONSTRUCTED AT ANY GIVEN TIME
-class etaFlexLexer : public yyFlexLexer {
-  using base_t = yyFlexLexer;
-  using base_t::LexerOutput;
-
-  void LexerOutput(char const *const yytext, int yyleng);
-
-public:
-  etaFlexLexer(std::istream *arg_yyin, std::ostream *arg_yyout);
-};
 
 struct TokenMeta {
   int64_t line_number{0};
