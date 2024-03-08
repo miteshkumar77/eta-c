@@ -2,6 +2,7 @@
 
 #include "base/logger.hpp"
 
+#include <cassert>
 #include <functional>
 #include <type_traits>
 #include <variant>
@@ -63,6 +64,7 @@ private:
 };
 
 class ExprAstNode;
+using ExprAstNodeListT = std::vector<std::reference_wrapper<ExprAstNode>>;
 
 template <typename DerivedOpAstNodeT> struct OpAstNodeTraits;
 
@@ -173,16 +175,37 @@ private:
 class MethodCallAstNode : public BaseAstNode {
 protected:
   using base_t = BaseAstNode;
-  inline explicit MethodCallAstNode(
-      const BaseNodeArgs &baseArgs,
-      const std::vector<std::reference_wrapper<ExprAstNode>> &arguments)
+  inline explicit MethodCallAstNode(const BaseNodeArgs &baseArgs,
+                                    const ExprAstNodeListT &arguments)
       : base_t{baseArgs}, m_arguments{arguments} {}
+
   void stream_each_member(const StreamKeyValueFnT &fn) const override;
   const char *get_name() const override;
 
 private:
   const std::string m_identifier;
-  const std::vector<std::reference_wrapper<ExprAstNode>> m_arguments;
+  const ExprAstNodeListT m_arguments;
+};
+
+/**
+ * Dereference:
+ * <identifier>\[[<expr 1>][<expr 2>]...[<expr n>]\]
+ */
+class ReferringExprAstNode : public BaseAstNode {
+protected:
+  using base_t = BaseAstNode;
+
+  inline explicit ReferringExprAstNode(const BaseNodeArgs &baseArgs,
+                                       const std::string &identifier,
+                                       const ExprAstNodeListT &indices)
+      : base_t{baseArgs}, m_identifier{identifier}, m_indices{indices} {}
+
+  void stream_each_member(const StreamKeyValueFnT &fn) const override;
+  const char *get_name() const override;
+
+private:
+  const std::string m_identifier;
+  const ExprAstNodeListT m_indices;
 };
 
 class ExprAstNode : public BaseAstNode {
@@ -196,10 +219,103 @@ protected:
   const char *get_name() const override;
 
 private:
-  std::variant<ValueExprAstNode, ArithBinOpExprAstNode, LogicalBinOpExprAstNode,
-               UnaryMinusOperatorAstNode, UnaryLnotOperatorAstNode,
-               MethodCallAstNode>
+  std::variant<ValueExprAstNode, ReferringExprAstNode, ArithBinOpExprAstNode,
+               LogicalBinOpExprAstNode, UnaryMinusOperatorAstNode,
+               UnaryLnotOperatorAstNode, MethodCallAstNode>
       m_expr;
+};
+
+/**
+ * int[x][y][z][][][]...[]
+ *
+ * <basic_type>{}
+ *
+ * <array_type>{
+ *  <basic_type>
+ *  dimension 1, ..., dimension n
+ * }
+ *
+ * <pointer_type>{
+ *  {<basic_type>, <array_type>}
+ *  depth
+ * }
+ *
+ * <type>{
+ *  {<basic_type>, <array_type>, <pointer_type>}
+ * }
+ */
+
+class BasicTypeAstNode : public BaseAstNode {
+protected:
+  using base_t = BaseAstNode;
+
+  template <typename UnderlyingT>
+  inline explicit BasicTypeAstNode(const BaseNodeArgs &baseArgs)
+      : base_t{baseArgs}, m_val{UnderlyingT{}} {}
+
+  struct BoolType {};
+  struct IntType {};
+
+  void stream_each_member(const StreamKeyValueFnT &fn) const override;
+  const char *get_name() const override;
+
+private:
+  const std::variant<BoolType, IntType> m_val;
+};
+
+class ArrayTypeAstNode : public BaseAstNode {
+protected:
+  using base_t = BaseAstNode;
+
+  inline explicit ArrayTypeAstNode(const BaseNodeArgs &baseArgs,
+                                   const BasicTypeAstNode &basic_type,
+                                   const std::vector<size_t> &dimensions)
+      : base_t{baseArgs}, m_basic_type{basic_type}, m_dimensions{dimensions} {
+    assert(!m_dimensions.empty());
+  }
+
+  void stream_each_member(const StreamKeyValueFnT &fn) const override;
+  const char *get_name() const override;
+
+private:
+  const BasicTypeAstNode m_basic_type;
+  const std::vector<size_t> m_dimensions;
+};
+
+class PointerTypeAstNode : public BaseAstNode {
+protected:
+  using base_t = BaseAstNode;
+
+  template <typename UnderlyingT>
+  inline explicit PointerTypeAstNode(const BaseNodeArgs &baseArgs,
+                                     const UnderlyingT &pod_type,
+                                     const size_t pointer_depth)
+      : base_t{baseArgs}, m_val{pod_type}, m_pointer_depth{pointer_depth} {
+    assert(m_pointer_depth);
+  }
+
+  void stream_each_member(const StreamKeyValueFnT &fn) const override;
+  const char *get_name() const override;
+
+private:
+  const std::variant<BasicTypeAstNode, ArrayTypeAstNode> m_val;
+  const size_t m_pointer_depth;
+};
+
+class TypeAnnotationAstNode : public BaseAstNode {
+protected:
+  using base_t = BaseAstNode;
+
+  template <typename UnderlyingT>
+  inline explicit TypeAnnotationAstNode(const BaseNodeArgs &baseArgs,
+                                        const UnderlyingT &val)
+      : base_t{baseArgs}, m_val{val} {}
+
+  void stream_each_member(const StreamKeyValueFnT &fn) const override;
+  const char *get_name() const override;
+
+private:
+  std::variant<BasicTypeAstNode, ArrayTypeAstNode, PointerTypeAstNode> m_val;
 };
 
 template <typename DerivedAstNodeT>
