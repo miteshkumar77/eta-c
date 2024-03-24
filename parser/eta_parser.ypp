@@ -7,6 +7,8 @@ namespace eta {
   class etaFlexLexer;
 }
 
+BaseNodeArgs get_bna();
+
 int yylex(/*yy::parser::semantic_type*/void* parser_look_ahead_sym, eta::etaFlexLexer& lexer);
 
 %}
@@ -14,31 +16,22 @@ int yylex(/*yy::parser::semantic_type*/void* parser_look_ahead_sym, eta::etaFlex
 %code requires {
   #include "base/defs.hpp"
   #include "lexer/lexer_defs.hpp"
+  #include "base/ast.hpp"
 
-  struct my_temp
-  {
-    int x;
-  };
+  #include <functional>
 
-  struct my_multi_temp
-  {
-    my_temp lhs;
-    my_temp rhs;
-  };
+  using ProgramAstNode = eta::ast::ProgramAstNode;
+  using UseAstNode = eta::ast::UseAstNode;
+
+  namespace eta {
+  struct ParserDriver;
+  }
+
 }
 
-%parse-param { std::istream& yyin  };
-%parse-param { std::ostream& yyout };
 %parse-param { eta::etaFlexLexer& lexer  };
+%parse-param { eta::ParserDriver& driver };
 %lex-param   { eta::etaFlexLexer& lexer  };
-
-%initial-action
-{
-  // begin the lexer at the start of a new yyin stream
-  // this way we can parse multiple files with individual
-  // parsing objects
-  lexer.switch_streams(yyin, yyout);
-}
 
 %define api.value.type variant
 %define api.token.prefix {TOK_}
@@ -57,22 +50,25 @@ int yylex(/*yy::parser::semantic_type*/void* parser_look_ahead_sym, eta::etaFlex
 
 %token ERROR
 
-%nterm <my_multi_temp> multi_exp
-%nterm <my_temp> exp
+%nterm <use_decl>
+%nterm <program>
 
 %%
-program: exp | multi_exp
 
-exp : LPAREN RPAREN
-  {
-    $$ = my_temp{.x=4};
-  }
-  ;
-multi_exp : LBRACKET exp exp RBRACKET
-  {
-    $$ = my_multi_temp{.lhs=$2, .rhs=$3};
-  }
-  ;
+program: {= driver.create<eta::ast::ProgramAstNode>(get_bna()); }
+{
+  driver.m_program.m_use_list = std::move($$1);
+}
+
+use_list: {
+
+}
+
+use_decl: USE_KWD IDENTIFIER {
+  $$ = ast::UseAstNode(get_bna(), $2.identifier_name);
+}
+
+
 %%
 
 namespace eta {
@@ -81,7 +77,12 @@ extern TokenMeta symbol_to_parser;
 
 int yylex(void* parser_look_ahead_sym, eta::etaFlexLexer& lexer)
 {
-  int rval = lexer.yylex();
+  const int rval = lexer.yylex();
   reinterpret_cast<yy::parser::semantic_type*>(parser_look_ahead_sym)->emplace<eta::TokenMeta, eta::TokenMeta&&>(std::move(eta::symbol_to_parser));
   return rval;
+}
+
+BaseNodeArgs get_bna()
+{
+  return BaseNodeArgs{}; // TODO
 }

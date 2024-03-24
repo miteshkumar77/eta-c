@@ -7,6 +7,14 @@
 #include <type_traits>
 #include <variant>
 
+namespace yy {
+class parser;
+}
+
+namespace eta {
+struct ParserDriver;
+}
+
 namespace eta::ast {
 
 struct BaseNodeArgs {};
@@ -19,6 +27,9 @@ using OstreamRval_t =
                      LoggerT &>;
 
 class BaseAstNode {
+public:
+  virtual ~BaseAstNode() = default;
+
 protected:
   inline explicit BaseAstNode(const BaseNodeArgs &args) {}
   using StreamFieldFnT = std::function<void(LoggerT &)>;
@@ -316,6 +327,22 @@ protected:
 
 private:
   std::variant<BasicTypeAstNode, ArrayTypeAstNode, PointerTypeAstNode> m_val;
+};
+
+class ProgramAstNode : public BaseAstNode {
+protected:
+  using base_t = BaseAstNode;
+
+  void stream_each_member(const StreamKeyValueFnT &fn) const override;
+  const char *get_name() const override;
+
+private:
+  friend yy::parser;
+  friend ParserDriver;
+
+  ProgramAstNode() : base_t{BaseNodeArgs{}} {}
+
+  std::vector<std::reference_wrapper<UseAstNode>> m_use_list;
 };
 
 template <typename DerivedAstNodeT>

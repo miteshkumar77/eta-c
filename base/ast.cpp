@@ -235,4 +235,16 @@ const char *TypeAnnotationAstNode::get_name() const {
   return "TypeAnnotationAstNode";
 }
 
+void ProgramAstNode::stream_each_member(const StreamKeyValueFnT &fn) const {
+  for (size_t i = 0; i < m_use_list.size(); ++i) {
+    fn([i](LoggerT &logger) { logger << "use_list[" << i << "]"; },
+       [self = this, i](LoggerT &logger) {
+         logger << self->m_use_list[i].get();
+       },
+       (i + 1) == m_use_list.size());
+  }
+}
+
+const char *ProgramAstNode::get_name() const { return "ProgramAstNode"; }
+
 } // namespace eta::ast

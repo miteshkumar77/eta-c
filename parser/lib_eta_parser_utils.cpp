@@ -50,4 +50,10 @@ char const *token_to_string(yy::parser::token::yytokentype t) {
   }
   return "<unknown>";
 }
+
+ParserDriver::ParserDriver(std::istream &yyin, std::ostream &yyout)
+    : m_program(this->create<ast::ProgramAstNode>(ast::BaseNodeArgs{}))
+          m_lexer(&yyin, &yyout),
+      m_parser(m_lexer, *this) {}
+
 } // namespace eta
